@@ -18,18 +18,18 @@ L.Icon.Default.mergeOptions({
 const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 
 interface RouteMapProps {
-  routes: (RouteRecord & { popularite?: number })[]
+  routes: RouteRecord[]
   onSelectRoute?: (routeId: string) => void
 }
 
-function FitToRoutes({ routes }: { routes: RouteMapProps['routes'] }) {
+function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
   const map = useMap()
   const routeIds = routes.map((r) => r.id).join(',')
 
   useEffect(() => {
     if (routes.length === 0) return
     const bounds = L.latLngBounds(
-      routes.flatMap((route) => route.gpxTrack.map((p) => [p.lat, p.lng] as [number, number])),
+      routes.flatMap((route) => route.gpx_track.map((p) => [p.lat, p.lng] as [number, number])),
     )
     if (bounds.isValid()) {
       map.fitBounds(bounds, { padding: [32, 32] })
@@ -41,8 +41,6 @@ function FitToRoutes({ routes }: { routes: RouteMapProps['routes'] }) {
 }
 
 export function RouteMap({ routes, onSelectRoute }: RouteMapProps) {
-  const maxPopularite = Math.max(1, ...routes.map((r) => r.popularite ?? 1))
-
   return (
     <MapContainer center={CHAMBERY_CENTER} zoom={12} style={{ height: '100%', width: '100%' }}>
       <TileLayer
@@ -50,21 +48,19 @@ export function RouteMap({ routes, onSelectRoute }: RouteMapProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitToRoutes routes={routes} />
-      {routes.map((route) => {
-        const weight = 2 + (4 * (route.popularite ?? 1)) / maxPopularite
-        return (
-          <Polyline
-            key={route.id}
-            positions={route.gpxTrack.map((p) => [p.lat, p.lng])}
-            pathOptions={{ color: '#2f6f4f', weight }}
-            eventHandlers={{
-              click: () => onSelectRoute?.(route.id),
-            }}
-          >
-            <Tooltip sticky>{route.nom}</Tooltip>
-          </Polyline>
-        )
-      })}
+      {routes.map((route) => (
+        <Polyline
+          key={route.id}
+          positions={route.gpx_track.map((p) => [p.lat, p.lng])}
+          // Opacité partielle : les tracés qui se superposent s'assombrissent naturellement (effet heatmap).
+          pathOptions={{ color: '#2f6f4f', weight: 4, opacity: 0.5 }}
+          eventHandlers={{
+            click: () => onSelectRoute?.(route.id),
+          }}
+        >
+          <Tooltip sticky>{route.nom}</Tooltip>
+        </Polyline>
+      ))}
     </MapContainer>
   )
 }

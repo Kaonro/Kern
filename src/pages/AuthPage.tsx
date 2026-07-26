@@ -5,6 +5,8 @@ export function AuthPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [pseudo, setPseudo] = useState('')
+  const [ville, setVille] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -16,7 +18,7 @@ export function AuthPage() {
     const { error } =
       mode === 'login'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signUp({ email, password, options: { data: { pseudo, ville } } })
 
     setLoading(false)
     setMessage(error ? error.message : mode === 'login' ? 'Connecté.' : 'Compte créé, vérifie ta boîte mail.')
@@ -41,6 +43,23 @@ export function AuthPage() {
           required
           minLength={6}
         />
+        {mode === 'signup' && (
+          <>
+            <input
+              type="text"
+              placeholder="pseudo"
+              value={pseudo}
+              onChange={(e) => setPseudo(e.target.value)}
+              required
+            />
+            <input
+              type="text"
+              placeholder="ville (optionnel)"
+              value={ville}
+              onChange={(e) => setVille(e.target.value)}
+            />
+          </>
+        )}
         <button type="submit" disabled={loading}>
           {mode === 'login' ? 'Se connecter' : "S'inscrire"}
         </button>

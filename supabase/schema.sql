@@ -1,0 +1,118 @@
+-- Schéma initial Kern MVP : users, routes, route_votes, reports
+-- A coller dans Supabase > SQL Editor > New query, puis "Run".
+
+create extension if not exists pgcrypto;
+
+-- Profil utilisateur (lié à auth.users, qui gère déjà email/mot de passe)
+create table public.users (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  pseudo text not null,
+  ville text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.users enable row level security;
+
+create policy "Les profils sont visibles par tous" on public.users
+  for select using (true);
+
+create policy "Chacun peut modifier son propre profil" on public.users
+  for update using (auth.uid() = id);
+
+-- Crée automatiquement une ligne dans public.users à l'inscription (auth.signUp)
+create function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.users (id, email, pseudo, ville)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'pseudo', split_part(new.email, '@', 1)),
+    new.raw_user_meta_data ->> 'ville'
+  );
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Parcours (chaque upload GPX crée une entrée ; la "heatmap" vient de la superposition visuelle des tracés)
+create table public.routes (
+  id uuid primary key default gen_random_uuid(),
+  nom text not null,
+  gpx_track jsonb not null, -- [{ "lat": .., "lng": .., "ele": .. }, ...]
+  distance_km numeric not null,
+  denivele_m integer not null default 0,
+  saisonnalite text,
+  created_by uuid references public.users (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.routes enable row level security;
+
+create policy "Les parcours sont visibles par tous" on public.routes
+  for select using (true);
+
+create policy "Les utilisateurs connectés peuvent ajouter un parcours" on public.routes
+  for insert with check (auth.uid() = created_by);
+
+create policy "Les contributeurs connectés peuvent éditer un parcours" on public.routes
+  for update using (auth.uid() is not null);
+
+-- Votes de technicité (un vote par utilisateur et par parcours, écrasable)
+create type public.technicite_enum as enum ('roulant', 'technique', 'tres_technique');
+
+create table public.route_votes (
+  id uuid primary key default gen_random_uuid(),
+  route_id uuid not null references public.routes (id) on delete cascade,
+  user_id uuid not null references public.users (id) on delete cascade,
+  technicite public.technicite_enum not null,
+  created_at timestamptz not null default now(),
+  unique (route_id, user_id)
+);
+
+alter table public.route_votes enable row level security;
+
+create policy "Les votes sont visibles par tous" on public.route_votes
+  for select using (true);
+
+create policy "Un utilisateur connecté peut voter" on public.route_votes
+  for insert with check (auth.uid() = user_id);
+
+create policy "Un utilisateur peut changer son propre vote" on public.route_votes
+  for update using (auth.uid() = user_id);
+
+-- Signalements géolocalisés
+create type public.report_type_enum as enum (
+  'eau_a_sec',
+  'passage_boueux',
+  'danger_eboulement',
+  'balisage_manquant',
+  'animal',
+  'autre'
+);
+
+create table public.reports (
+  id uuid primary key default gen_random_uuid(),
+  route_id uuid not null references public.routes (id) on delete cascade,
+  user_id uuid references public.users (id) on delete set null,
+  type public.report_type_enum not null,
+  description text,
+  latitude double precision not null,
+  longitude double precision not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.reports enable row level security;
+
+create policy "Les signalements sont visibles par tous" on public.reports
+  for select using (true);
+
+create policy "Un utilisateur connecté peut signaler" on public.reports
+  for insert with check (auth.uid() = user_id);

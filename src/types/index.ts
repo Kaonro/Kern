@@ -36,36 +36,39 @@ export interface GpxData {
   elevationLossM: number
 }
 
+/** Reflète directement les colonnes de la table public.routes. */
 export interface RouteRecord {
   id: string
   nom: string
-  gpxTrack: TrackPoint[]
-  distanceKm: number
-  elevationGainM: number
-  technicite: Technicite | null
+  gpx_track: TrackPoint[]
+  distance_km: number
+  denivele_m: number
   saisonnalite: string | null
-  createdBy: string
-  createdAt: string
+  created_by: string | null
+  created_at: string
 }
 
+/** Reflète directement les colonnes de la table public.route_votes. */
 export interface RouteVote {
   id: string
-  routeId: string
-  userId: string
+  route_id: string
+  user_id: string
   technicite: Technicite
 }
 
+/** Reflète directement les colonnes de la table public.reports. */
 export interface Report {
   id: string
-  routeId: string
-  userId: string
+  route_id: string
+  user_id: string | null
   type: ReportType
-  description: string
+  description: string | null
   latitude: number
   longitude: number
-  createdAt: string
+  created_at: string
 }
 
+/** Reflète directement les colonnes de la table public.users. */
 export interface UserProfile {
   id: string
   email: string
