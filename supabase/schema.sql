@@ -45,6 +45,25 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- Seuls pseudo et ville sont éditables par le propriétaire du profil (jamais
+-- id/created_at). Un trigger plutôt que des GRANT par colonne : Supabase
+-- réapplique automatiquement des GRANT larges sur les tables du schéma
+-- public, donc REVOKE par colonne n'est pas fiable dans la durée.
+create or replace function public.restrict_user_updates()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.id := old.id;
+  new.created_at := old.created_at;
+  return new;
+end;
+$$;
+
+create trigger enforce_user_update_columns
+  before update on public.users
+  for each row execute function public.restrict_user_updates();
+
 -- Parcours (chaque upload GPX crée une entrée ; la "heatmap" vient de la superposition visuelle des tracés)
 create table public.routes (
   id uuid primary key default gen_random_uuid(),
@@ -70,8 +89,23 @@ create policy "Les contributeurs connectés peuvent éditer un parcours" on publ
 
 -- Seuls le nom et la praticabilité saisonnière sont éditables par la communauté,
 -- jamais le tracé GPX, la distance, le dénivelé ou l'attribution du parcours.
-revoke update on public.routes from authenticated;
-grant update (nom, saisonnalite) on public.routes to authenticated;
+create or replace function public.restrict_route_updates()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.gpx_track := old.gpx_track;
+  new.distance_km := old.distance_km;
+  new.denivele_m := old.denivele_m;
+  new.created_by := old.created_by;
+  new.created_at := old.created_at;
+  return new;
+end;
+$$;
+
+create trigger enforce_route_update_columns
+  before update on public.routes
+  for each row execute function public.restrict_route_updates();
 
 -- Votes de technicité (un vote par utilisateur et par parcours, écrasable)
 create type public.technicite_enum as enum ('roulant', 'technique', 'tres_technique');
@@ -97,8 +131,21 @@ create policy "Un utilisateur peut changer son propre vote" on public.route_vote
   for update using (auth.uid() = user_id);
 
 -- Seul le niveau voté est modifiable, pas le parcours ou l'utilisateur associé au vote.
-revoke update on public.route_votes from authenticated;
-grant update (technicite) on public.route_votes to authenticated;
+create or replace function public.restrict_vote_updates()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.route_id := old.route_id;
+  new.user_id := old.user_id;
+  new.created_at := old.created_at;
+  return new;
+end;
+$$;
+
+create trigger enforce_vote_update_columns
+  before update on public.route_votes
+  for each row execute function public.restrict_vote_updates();
 
 -- Signalements géolocalisés
 create type public.report_type_enum as enum (
