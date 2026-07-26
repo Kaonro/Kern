@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, Polyline, TileLayer, Tooltip, useMap } from 'react-leaflet'
+import { MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -20,6 +20,9 @@ const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 interface RouteMapProps {
   routes: RouteRecord[]
   onSelectRoute?: (routeId: string) => void
+  pickMode?: boolean
+  onPick?: (lat: number, lng: number) => void
+  pickedPosition?: { lat: number; lng: number } | null
 }
 
 function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
@@ -40,7 +43,21 @@ function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
   return null
 }
 
-export function RouteMap({ routes, onSelectRoute }: RouteMapProps) {
+function PickModeHandler({ active, onPick }: { active: boolean; onPick?: (lat: number, lng: number) => void }) {
+  const map = useMapEvents({
+    click(e) {
+      if (active) onPick?.(e.latlng.lat, e.latlng.lng)
+    },
+  })
+
+  useEffect(() => {
+    map.getContainer().style.cursor = active ? 'crosshair' : ''
+  }, [map, active])
+
+  return null
+}
+
+export function RouteMap({ routes, onSelectRoute, pickMode = false, onPick, pickedPosition }: RouteMapProps) {
   return (
     <MapContainer center={CHAMBERY_CENTER} zoom={12} style={{ height: '100%', width: '100%' }}>
       <TileLayer
@@ -48,6 +65,7 @@ export function RouteMap({ routes, onSelectRoute }: RouteMapProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitToRoutes routes={routes} />
+      <PickModeHandler active={pickMode} onPick={onPick} />
       {routes.map((route) => (
         <Polyline
           key={route.id}
@@ -55,12 +73,19 @@ export function RouteMap({ routes, onSelectRoute }: RouteMapProps) {
           // Opacité partielle : les tracés qui se superposent s'assombrissent naturellement (effet heatmap).
           pathOptions={{ color: '#2f6f4f', weight: 4, opacity: 0.5 }}
           eventHandlers={{
-            click: () => onSelectRoute?.(route.id),
+            click: (e) => {
+              if (pickMode) {
+                onPick?.(e.latlng.lat, e.latlng.lng)
+              } else {
+                onSelectRoute?.(route.id)
+              }
+            },
           }}
         >
           <Tooltip sticky>{route.nom}</Tooltip>
         </Polyline>
       ))}
+      {pickedPosition && <Marker position={[pickedPosition.lat, pickedPosition.lng]} />}
     </MapContainer>
   )
 }

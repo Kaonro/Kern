@@ -7,8 +7,28 @@ function extractMessage(err: unknown): string {
   return String(err)
 }
 
-/** Traduit les erreurs techniques (réseau, Postgres/RLS) en messages compréhensibles. */
+function extractCode(err: unknown): unknown {
+  if (typeof err === 'object' && err !== null && 'code' in err) {
+    return (err as { code: unknown }).code
+  }
+  return undefined
+}
+
+/** Traduit les erreurs techniques (réseau, Postgres/RLS, géolocalisation) en messages compréhensibles. */
 export function toFriendlyError(err: unknown): string {
+  const code = extractCode(err)
+  if (typeof code === 'number') {
+    if (code === 1) {
+      return "Localisation refusée — autorise l'accès à ta position dans les réglages de ton navigateur, ou choisis un point sur la carte."
+    }
+    if (code === 2) {
+      return 'Position introuvable — réessaie en extérieur, ou choisis un point sur la carte.'
+    }
+    if (code === 3) {
+      return 'La localisation a pris trop de temps — réessaie, ou choisis un point sur la carte.'
+    }
+  }
+
   const raw = extractMessage(err)
   const lower = raw.toLowerCase()
 
