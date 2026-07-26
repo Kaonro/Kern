@@ -68,12 +68,16 @@ export interface Report {
   created_at: string
 }
 
-/** Reflète directement les colonnes de la table public.users. */
+/**
+ * Reflète les colonnes de public.users accessibles via l'API (hors email,
+ * jamais exposé publiquement — voir supabase/schema.sql). L'email vient
+ * toujours de la session Supabase Auth (session.user.email), jamais de cette table.
+ */
 export interface UserProfile {
   id: string
-  email: string
   pseudo: string
   ville: string | null
+  created_at: string
 }
 
 /** RouteRecord enrichi du pseudo du contributeur (jointure sur public.users). */

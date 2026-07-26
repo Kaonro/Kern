@@ -2,7 +2,12 @@ import { supabase } from './supabaseClient'
 import type { UserProfile } from '../types'
 
 export async function fetchProfile(userId: string): Promise<UserProfile | null> {
-  const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
+  // email volontairement exclu : la colonne n'est pas accessible en lecture via l'API (voir supabase/schema.sql).
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, pseudo, ville, created_at')
+    .eq('id', userId)
+    .maybeSingle()
   if (error) throw error
   return data
 }

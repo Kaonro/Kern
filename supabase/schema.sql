@@ -20,6 +20,11 @@ create policy "Les profils sont visibles par tous" on public.users
 create policy "Chacun peut modifier son propre profil" on public.users
   for update using (auth.uid() = id);
 
+-- RLS filtre les lignes, pas les colonnes : l'email doit être bloqué explicitement.
+revoke select (email) on public.users from anon, authenticated;
+revoke update on public.users from authenticated;
+grant update (pseudo, ville) on public.users to authenticated;
+
 -- Crée automatiquement une ligne dans public.users à l'inscription (auth.signUp)
 create function public.handle_new_user()
 returns trigger
@@ -65,6 +70,11 @@ create policy "Les utilisateurs connectés peuvent ajouter un parcours" on publi
 create policy "Les contributeurs connectés peuvent éditer un parcours" on public.routes
   for update using (auth.uid() is not null);
 
+-- Seuls le nom et la praticabilité saisonnière sont éditables par la communauté,
+-- jamais le tracé GPX, la distance, le dénivelé ou l'attribution du parcours.
+revoke update on public.routes from authenticated;
+grant update (nom, saisonnalite) on public.routes to authenticated;
+
 -- Votes de technicité (un vote par utilisateur et par parcours, écrasable)
 create type public.technicite_enum as enum ('roulant', 'technique', 'tres_technique');
 
@@ -87,6 +97,10 @@ create policy "Un utilisateur connecté peut voter" on public.route_votes
 
 create policy "Un utilisateur peut changer son propre vote" on public.route_votes
   for update using (auth.uid() = user_id);
+
+-- Seul le niveau voté est modifiable, pas le parcours ou l'utilisateur associé au vote.
+revoke update on public.route_votes from authenticated;
+grant update (technicite) on public.route_votes to authenticated;
 
 -- Signalements géolocalisés
 create type public.report_type_enum as enum (
