@@ -10,6 +10,7 @@ export function UploadGpxPage() {
   const navigate = useNavigate()
 
   const [preview, setPreview] = useState<GpxData | null>(null)
+  const [fileName, setFileName] = useState('')
   const [nom, setNom] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -20,6 +21,7 @@ export function UploadGpxPage() {
 
     setError('')
     setPreview(null)
+    setFileName(file.name)
 
     try {
       const text = await file.text()
@@ -47,7 +49,8 @@ export function UploadGpxPage() {
 
   if (!session) {
     return (
-      <div className="page-padding">
+      <div className="empty-state">
+        <span className="big-emoji">🔒</span>
         <h1>Ajouter un parcours</h1>
         <p>Connecte-toi pour pouvoir ajouter un parcours.</p>
       </div>
@@ -56,31 +59,39 @@ export function UploadGpxPage() {
 
   return (
     <div className="page-padding">
-      <h1>Ajouter un parcours</h1>
-      <p>Exporte ta trace depuis Strava, Garmin Connect ou Coros (.gpx), puis importe-la ici.</p>
+      <h1>📤 Ajouter un parcours</h1>
+      <p className="notice">
+        Exporte ta trace depuis Strava, Garmin Connect ou Coros (.gpx), puis importe-la ici. 🥾
+      </p>
 
-      <input type="file" accept=".gpx" onChange={handleFileChange} />
+      <label className="dropzone card">
+        <span style={{ fontSize: '2rem' }}>🗻</span>
+        <strong>{fileName || 'Choisir un fichier .gpx'}</strong>
+        <span className="notice">Clique ou dépose ton fichier ici</span>
+        <input type="file" accept=".gpx" onChange={handleFileChange} />
+      </label>
 
       {error && <p className="error">{error}</p>}
 
       {preview && (
-        <form className="gpx-preview" onSubmit={handleSave}>
+        <form className="card gpx-preview" onSubmit={handleSave}>
+          <h2>✅ Trace détectée</h2>
           <ul>
-            <li>{preview.points.length} points de trace</li>
-            <li>{preview.distanceKm.toFixed(1)} km</li>
-            <li>
-              +{preview.elevationGainM} m / -{preview.elevationLossM} m
+            <li className="stat-pill">📍 {preview.points.length} points</li>
+            <li className="stat-pill">📏 {preview.distanceKm.toFixed(1)} km</li>
+            <li className="stat-pill">
+              ⛰️ +{preview.elevationGainM} m / -{preview.elevationLossM} m
             </li>
           </ul>
           <input
             type="text"
-            placeholder="Nom du parcours"
+            placeholder="Nom du parcours 🏔️"
             value={nom}
             onChange={(e) => setNom(e.target.value)}
             required
           />
-          <button type="submit" disabled={saving}>
-            {saving ? 'Enregistrement...' : 'Enregistrer ce parcours'}
+          <button type="submit" className="btn btn-primary btn-block" disabled={saving}>
+            {saving ? '⏳ Enregistrement...' : '💾 Enregistrer ce parcours'}
           </button>
         </form>
       )}

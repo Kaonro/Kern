@@ -8,21 +8,23 @@ export function NavBar() {
 
   return (
     <nav className="navbar">
-      <span className="navbar-brand">Kern</span>
+      <NavLink to="/" end className="navbar-brand">
+        🏔️ Kern
+      </NavLink>
       <div className="navbar-links">
         <NavLink to="/" end>
-          Carte
+          🗺️ Carte
         </NavLink>
-        <NavLink to="/upload">Ajouter un GPX</NavLink>
+        <NavLink to="/upload">📤 Ajouter un GPX</NavLink>
         {session ? (
           <>
-            <span>{session.user.email}</span>
+            <span className="navbar-user">👋 {session.user.email}</span>
             <button type="button" className="link-button" onClick={() => supabase.auth.signOut()}>
               Déconnexion
             </button>
           </>
         ) : (
-          <NavLink to="/auth">Connexion</NavLink>
+          <NavLink to="/auth">🔑 Connexion</NavLink>
         )}
       </div>
     </nav>

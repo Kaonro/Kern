@@ -21,59 +21,67 @@ export function AuthPage() {
         : await supabase.auth.signUp({ email, password, options: { data: { pseudo, ville } } })
 
     setLoading(false)
-    setMessage(error ? error.message : mode === 'login' ? 'Connecté.' : 'Compte créé, vérifie ta boîte mail.')
+    setMessage(
+      error ? `❌ ${error.message}` : mode === 'login' ? '✅ Connecté.' : '✅ Compte créé, vérifie ta boîte mail.',
+    )
   }
 
   return (
     <div className="page-padding auth-page">
-      <h1>{mode === 'login' ? 'Connexion' : 'Inscription'}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-        />
-        {mode === 'signup' && (
-          <>
-            <input
-              type="text"
-              placeholder="pseudo"
-              value={pseudo}
-              onChange={(e) => setPseudo(e.target.value)}
-              required
-            />
-            <input
-              type="text"
-              placeholder="ville (optionnel)"
-              value={ville}
-              onChange={(e) => setVille(e.target.value)}
-            />
-          </>
-        )}
-        <button type="submit" disabled={loading}>
-          {mode === 'login' ? 'Se connecter' : "S'inscrire"}
+      <div className="card auth-card">
+        <h1>{mode === 'login' ? '🔑 Connexion' : '🙋 Inscription'}</h1>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="📧 email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="🔒 mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+          />
+          {mode === 'signup' && (
+            <>
+              <input
+                type="text"
+                placeholder="🙂 pseudo"
+                value={pseudo}
+                onChange={(e) => setPseudo(e.target.value)}
+                required
+              />
+              <input
+                type="text"
+                placeholder="📍 ville (optionnel)"
+                value={ville}
+                onChange={(e) => setVille(e.target.value)}
+              />
+            </>
+          )}
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? '⏳' : mode === 'login' ? '➡️ Se connecter' : "🎉 S'inscrire"}
+          </button>
+        </form>
+        <button
+          type="button"
+          className="link-button auth-switch"
+          onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+        >
+          {mode === 'login' ? "Pas de compte ? S'inscrire" : 'Déjà un compte ? Se connecter'}
         </button>
-      </form>
-      <button type="button" className="link-button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
-        {mode === 'login' ? "Pas de compte ? S'inscrire" : 'Déjà un compte ? Se connecter'}
-      </button>
-      {message && <p className="notice">{message}</p>}
-      {!isSupabaseConfigured && (
-        <p className="notice">
-          Supabase n'est pas encore configuré (voir .env.example) — la connexion échouera tant que le projet
-          Supabase n'est pas créé.
-        </p>
-      )}
+        {message && <p className="notice">{message}</p>}
+        {!isSupabaseConfigured && (
+          <p className="notice">
+            ⚠️ Supabase n'est pas encore configuré (voir .env.example) — la connexion échouera tant que le projet
+            Supabase n'est pas créé.
+          </p>
+        )}
+      </div>
     </div>
   )
 }

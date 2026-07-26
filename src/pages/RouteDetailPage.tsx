@@ -5,7 +5,9 @@ import { fetchRouteById, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
 import { createReport, fetchReportsForRoute } from '../lib/reportsApi'
 import {
+  REPORT_TYPE_EMOJIS,
   REPORT_TYPE_LABELS,
+  TECHNICITE_EMOJIS,
   TECHNICITE_LABELS,
   type Report,
   type ReportType,
@@ -108,67 +110,81 @@ export function RouteDetailPage() {
   }
 
   if (loading) {
-    return <p className="page-padding">Chargement...</p>
+    return (
+      <div className="loading-state">
+        <span className="big-emoji">🥾</span>
+        Chargement du parcours...
+      </div>
+    )
   }
 
   if (!route) {
-    return <p className="page-padding">{error || 'Parcours introuvable.'}</p>
+    return (
+      <div className="empty-state">
+        <span className="big-emoji">🤷</span>
+        {error || 'Parcours introuvable.'}
+      </div>
+    )
   }
 
   const majorityTechnicite = computeMajorityTechnicite(votes)
 
   return (
     <div className="page-padding route-detail">
-      <h1>{route.nom}</h1>
-      <div className="route-stats">
-        <span>{route.distance_km.toFixed(1)} km</span>
-        <span>+{route.denivele_m} m D+</span>
-      </div>
-
       {error && <p className="error">{error}</p>}
 
-      <section>
-        <h2>Technicité</h2>
+      <div className="card route-header">
+        <div>
+          <h1>🏔️ {route.nom}</h1>
+          <div className="route-stats">
+            <span className="stat-pill">📏 {route.distance_km.toFixed(1)} km</span>
+            <span className="stat-pill">⛰️ +{route.denivele_m} m D+</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>🎯 Technicité</h2>
         <div className="technicite-votes">
           {(Object.keys(TECHNICITE_LABELS) as Technicite[]).map((t) => (
             <button
               key={t}
               type="button"
-              className={t === majorityTechnicite ? 'active' : ''}
+              className={t === majorityTechnicite ? `active ${t}` : t}
               disabled={!session}
               onClick={() => handleVote(t)}
             >
-              {TECHNICITE_LABELS[t]}
+              {TECHNICITE_EMOJIS[t]} {TECHNICITE_LABELS[t]}
             </button>
           ))}
         </div>
-        {!session && <p className="notice">Connecte-toi pour voter.</p>}
-      </section>
+        {!session && <p className="notice">🔒 Connecte-toi pour voter.</p>}
+      </div>
 
-      <section>
-        <h2>Praticabilité saisonnière</h2>
+      <div className="card">
+        <h2>📅 Praticabilité saisonnière</h2>
         <textarea
           value={saisonnalite}
           onChange={(e) => setSaisonnalite(e.target.value)}
-          placeholder="ex. praticable mai à octobre, enneigé l'hiver"
+          placeholder="ex. praticable mai à octobre, enneigé l'hiver ❄️"
           rows={2}
           disabled={!session}
         />
         {session && (
-          <button type="button" onClick={handleSaveSaisonnalite} disabled={savingSaisonnalite}>
-            {savingSaisonnalite ? 'Enregistrement...' : 'Enregistrer'}
+          <button type="button" className="btn btn-primary" onClick={handleSaveSaisonnalite} disabled={savingSaisonnalite}>
+            {savingSaisonnalite ? '⏳ Enregistrement...' : '💾 Enregistrer'}
           </button>
         )}
-      </section>
+      </div>
 
-      <section>
-        <h2>Signalements</h2>
+      <div className="card">
+        <h2>📢 Signalements</h2>
         {session ? (
           <form className="report-form" onSubmit={handleAddReport}>
             <select value={newReportType} onChange={(e) => setNewReportType(e.target.value as ReportType)}>
               {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
-                  {label}
+                  {REPORT_TYPE_EMOJIS[value as ReportType]} {label}
                 </option>
               ))}
             </select>
@@ -178,25 +194,29 @@ export function RouteDetailPage() {
               value={newReportDescription}
               onChange={(e) => setNewReportDescription(e.target.value)}
             />
-            <button type="submit" disabled={submittingReport}>
-              Signaler
+            <button type="submit" className="btn btn-accent" disabled={submittingReport}>
+              {submittingReport ? '⏳' : '🚨 Signaler'}
             </button>
           </form>
         ) : (
-          <p className="notice">Connecte-toi pour ajouter un signalement.</p>
+          <p className="notice">🔒 Connecte-toi pour ajouter un signalement.</p>
         )}
 
         <ul className="report-list">
           {reports.map((report) => (
             <li key={report.id} style={{ opacity: relevanceOpacity(report.created_at) }}>
-              <strong>{REPORT_TYPE_LABELS[report.type]}</strong>
-              <span>{report.description}</span>
-              <time>{new Date(report.created_at).toLocaleDateString('fr-FR')}</time>
+              <div className="report-item-header">
+                <strong>
+                  {REPORT_TYPE_EMOJIS[report.type]} {REPORT_TYPE_LABELS[report.type]}
+                </strong>
+                <time>{new Date(report.created_at).toLocaleDateString('fr-FR')}</time>
+              </div>
+              {report.description && <p>{report.description}</p>}
             </li>
           ))}
-          {reports.length === 0 && <li className="empty">Aucun signalement pour l'instant.</li>}
+          {reports.length === 0 && <li className="empty">🤷 Aucun signalement pour l'instant.</li>}
         </ul>
-      </section>
+      </div>
     </div>
   )
 }

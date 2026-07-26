@@ -6,6 +6,12 @@ export const TECHNICITE_LABELS: Record<Technicite, string> = {
   tres_technique: 'Très technique',
 }
 
+export const TECHNICITE_EMOJIS: Record<Technicite, string> = {
+  roulant: '🟢',
+  technique: '🟠',
+  tres_technique: '🔴',
+}
+
 export type ReportType =
   | 'eau_a_sec'
   | 'passage_boueux'
@@ -21,6 +27,15 @@ export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   balisage_manquant: 'Balisage manquant',
   animal: 'Animal sur le sentier',
   autre: 'Autre',
+}
+
+export const REPORT_TYPE_EMOJIS: Record<ReportType, string> = {
+  eau_a_sec: '🚱',
+  passage_boueux: '🟤',
+  danger_eboulement: '⚠️',
+  balisage_manquant: '🧭',
+  animal: '🦌',
+  autre: '📍',
 }
 
 export interface TrackPoint {
