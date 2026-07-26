@@ -29,3 +29,6 @@ dist-ssr
 
 # Captures d'écran collées dans le chat
 Capture d'écran/
+
+# Traces GPX perso déposées dans le dossier (pas du code applicatif)
+Trace GPX/

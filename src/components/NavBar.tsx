@@ -18,6 +18,7 @@ export function NavBar() {
         <NavLink to="/upload">📤 Ajouter un GPX</NavLink>
         {session ? (
           <>
+            <NavLink to="/profile">👤 Profil</NavLink>
             <span className="navbar-user">👋 {session.user.email}</span>
             <button type="button" className="link-button" onClick={() => supabase.auth.signOut()}>
               Déconnexion

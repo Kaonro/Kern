@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
-import { fetchRouteById, updateSaisonnalite } from '../lib/routesApi'
+import { toFriendlyError } from '../lib/errors'
+import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
 import { createReport, fetchReportsForRoute } from '../lib/reportsApi'
 import {
@@ -11,8 +12,8 @@ import {
   TECHNICITE_LABELS,
   type Report,
   type ReportType,
-  type RouteRecord,
   type RouteVote,
+  type RouteWithContributor,
   type Technicite,
 } from '../types'
 
@@ -27,11 +28,15 @@ export function RouteDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { session } = useAuth()
 
-  const [route, setRoute] = useState<RouteRecord | null>(null)
+  const [route, setRoute] = useState<RouteWithContributor | null>(null)
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [editingNom, setEditingNom] = useState(false)
+  const [nom, setNom] = useState('')
+  const [savingNom, setSavingNom] = useState(false)
 
   const [saisonnalite, setSaisonnalite] = useState('')
   const [savingSaisonnalite, setSavingSaisonnalite] = useState(false)
@@ -51,11 +56,12 @@ export function RouteDetailPage() {
         fetchReportsForRoute(id),
       ])
       setRoute(routeData)
+      setNom(routeData?.nom ?? '')
       setSaisonnalite(routeData?.saisonnalite ?? '')
       setVotes(votesData)
       setReports(reportsData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement du parcours.')
+      setError(toFriendlyError(err))
     } finally {
       setLoading(false)
     }
@@ -71,7 +77,21 @@ export function RouteDetailPage() {
       await castVote(id, session.user.id, technicite)
       setVotes(await fetchVotesForRoute(id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du vote.')
+      setError(toFriendlyError(err))
+    }
+  }
+
+  async function handleSaveNom() {
+    if (!id || !session || !nom.trim()) return
+    setSavingNom(true)
+    try {
+      await updateNom(id, nom.trim())
+      setRoute((prev) => (prev ? { ...prev, nom: nom.trim() } : prev))
+      setEditingNom(false)
+    } catch (err) {
+      setError(toFriendlyError(err))
+    } finally {
+      setSavingNom(false)
     }
   }
 
@@ -81,7 +101,7 @@ export function RouteDetailPage() {
     try {
       await updateSaisonnalite(id, saisonnalite)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.")
+      setError(toFriendlyError(err))
     } finally {
       setSavingSaisonnalite(false)
     }
@@ -103,7 +123,7 @@ export function RouteDetailPage() {
       setNewReportDescription('')
       setReports(await fetchReportsForRoute(route.id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors du signalement.')
+      setError(toFriendlyError(err))
     } finally {
       setSubmittingReport(false)
     }
@@ -131,15 +151,39 @@ export function RouteDetailPage() {
 
   return (
     <div className="page-padding route-detail">
+      <Link to="/" className="back-link">
+        ⬅️ Retour à la carte
+      </Link>
+
       {error && <p className="error">{error}</p>}
 
       <div className="card route-header">
-        <div>
-          <h1>🏔️ {route.nom}</h1>
+        <div style={{ width: '100%' }}>
+          {editingNom ? (
+            <div className="nom-edit">
+              <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} />
+              <button type="button" className="btn btn-primary" onClick={handleSaveNom} disabled={savingNom}>
+                {savingNom ? '⏳' : '💾'}
+              </button>
+              <button type="button" className="link-button" onClick={() => setEditingNom(false)}>
+                Annuler
+              </button>
+            </div>
+          ) : (
+            <h1>
+              🏔️ {route.nom}{' '}
+              {session && (
+                <button type="button" className="link-button edit-nom-btn" onClick={() => setEditingNom(true)}>
+                  ✏️
+                </button>
+              )}
+            </h1>
+          )}
           <div className="route-stats">
             <span className="stat-pill">📏 {route.distance_km.toFixed(1)} km</span>
             <span className="stat-pill">⛰️ +{route.denivele_m} m D+</span>
           </div>
+          {route.users?.pseudo && <p className="notice contributor">🙋 Ajouté par {route.users.pseudo}</p>}
         </div>
       </div>
 

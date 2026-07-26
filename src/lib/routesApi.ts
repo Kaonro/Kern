@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient'
-import type { GpxData, RouteRecord } from '../types'
+import type { GpxData, RouteRecord, RouteWithContributor } from '../types'
 
 export async function fetchRoutes(): Promise<RouteRecord[]> {
   const { data, error } = await supabase.from('routes').select('*').order('created_at', { ascending: false })
@@ -7,10 +7,14 @@ export async function fetchRoutes(): Promise<RouteRecord[]> {
   return data as RouteRecord[]
 }
 
-export async function fetchRouteById(id: string): Promise<RouteRecord | null> {
-  const { data, error } = await supabase.from('routes').select('*').eq('id', id).maybeSingle()
+export async function fetchRouteById(id: string): Promise<RouteWithContributor | null> {
+  const { data, error } = await supabase
+    .from('routes')
+    .select('*, users(pseudo)')
+    .eq('id', id)
+    .maybeSingle()
   if (error) throw error
-  return data
+  return data as RouteWithContributor | null
 }
 
 export async function createRoute(params: { nom: string; gpx: GpxData; createdBy: string }): Promise<RouteRecord> {
@@ -31,5 +35,10 @@ export async function createRoute(params: { nom: string; gpx: GpxData; createdBy
 
 export async function updateSaisonnalite(routeId: string, saisonnalite: string): Promise<void> {
   const { error } = await supabase.from('routes').update({ saisonnalite }).eq('id', routeId)
+  if (error) throw error
+}
+
+export async function updateNom(routeId: string, nom: string): Promise<void> {
+  const { error } = await supabase.from('routes').update({ nom }).eq('id', routeId)
   if (error) throw error
 }

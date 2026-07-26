@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
+import { toFriendlyError } from '../lib/errors'
 import { fetchRoutes } from '../lib/routesApi'
 import type { RouteRecord } from '../types'
 
@@ -13,12 +14,13 @@ export function MapPage() {
   useEffect(() => {
     fetchRoutes()
       .then(setRoutes)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Erreur de chargement des parcours.'))
+      .catch((err) => setError(toFriendlyError(err)))
       .finally(() => setLoading(false))
   }, [])
 
   return (
     <div className="page-map">
+      {loading && <p className="map-empty-banner">⏳ Chargement des parcours...</p>}
       {error && <p className="error map-error">⚠️ {error}</p>}
       {!loading && !error && routes.length === 0 && (
         <p className="map-empty-banner">🥾 Aucun parcours pour l'instant — sois le premier à en ajouter !</p>

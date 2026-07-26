@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
+import { toFriendlyError } from '../lib/errors'
 import { parseGpx } from '../lib/gpx'
 import { createRoute } from '../lib/routesApi'
 import type { GpxData } from '../types'
@@ -27,7 +28,7 @@ export function UploadGpxPage() {
       const text = await file.text()
       setPreview(parseGpx(text))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de lecture du fichier.')
+      setError(toFriendlyError(err))
     }
   }
 
@@ -41,7 +42,7 @@ export function UploadGpxPage() {
       const route = await createRoute({ nom, gpx: preview, createdBy: session.user.id })
       navigate(`/routes/${route.id}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'enregistrement.")
+      setError(toFriendlyError(err))
     } finally {
       setSaving(false)
     }
@@ -59,6 +60,9 @@ export function UploadGpxPage() {
 
   return (
     <div className="page-padding">
+      <Link to="/" className="back-link">
+        ⬅️ Retour à la carte
+      </Link>
       <h1>📤 Ajouter un parcours</h1>
       <p className="notice">
         Exporte ta trace depuis Strava, Garmin Connect ou Coros (.gpx), puis importe-la ici. 🥾

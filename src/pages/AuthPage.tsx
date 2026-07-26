@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { toFriendlyError } from '../lib/errors'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
 export function AuthPage() {
@@ -22,7 +23,7 @@ export function AuthPage() {
 
     setLoading(false)
     setMessage(
-      error ? `❌ ${error.message}` : mode === 'login' ? '✅ Connecté.' : '✅ Compte créé, vérifie ta boîte mail.',
+      error ? `❌ ${toFriendlyError(error)}` : mode === 'login' ? '✅ Connecté.' : '✅ Compte créé, vérifie ta boîte mail.',
     )
   }
 

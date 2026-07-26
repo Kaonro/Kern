@@ -90,3 +90,8 @@ export interface UserProfile {
   pseudo: string
   ville: string | null
 }
+
+/** RouteRecord enrichi du pseudo du contributeur (jointure sur public.users). */
+export interface RouteWithContributor extends RouteRecord {
+  users: { pseudo: string } | null
+}

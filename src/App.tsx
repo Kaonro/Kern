@@ -5,6 +5,7 @@ import { MapPage } from './pages/MapPage'
 import { UploadGpxPage } from './pages/UploadGpxPage'
 import { RouteDetailPage } from './pages/RouteDetailPage'
 import { AuthPage } from './pages/AuthPage'
+import { ProfilePage } from './pages/ProfilePage'
 import './App.css'
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
               <Route path="/upload" element={<UploadGpxPage />} />
               <Route path="/routes/:id" element={<RouteDetailPage />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>
         </div>

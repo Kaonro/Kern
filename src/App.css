@@ -364,3 +364,59 @@ textarea {
   text-align: center;
   margin-top: 0.5rem;
 }
+
+/* Navigation */
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--color-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* Nom du parcours éditable */
+.nom-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nom-edit input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.edit-nom-btn {
+  font-size: 0.9rem;
+}
+
+.contributor {
+  margin-top: 0.5rem;
+}
+
+/* Formulaires génériques dans une carte (ex. profil) */
+.card form label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.85rem;
+}
+
+.card form label input {
+  display: block;
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  font-weight: 400;
+}
