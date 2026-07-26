@@ -3,10 +3,14 @@
 
 create extension if not exists pgcrypto;
 
--- Profil utilisateur (lié à auth.users, qui gère déjà email/mot de passe)
+-- Profil utilisateur (lié à auth.users, qui gère déjà email/mot de passe).
+-- Pas de colonne email ici volontairement : Supabase réapplique automatiquement
+-- des GRANT larges sur les tables du schéma public, donc restreindre une colonne
+-- par REVOKE n'est pas fiable dans la durée. L'email reste uniquement dans
+-- auth.users (jamais exposé par l'API publique) et l'app lit toujours
+-- session.user.email, jamais cette table.
 create table public.users (
   id uuid primary key references auth.users (id) on delete cascade,
-  email text not null,
   pseudo text not null,
   ville text,
   created_at timestamptz not null default now()
@@ -20,11 +24,6 @@ create policy "Les profils sont visibles par tous" on public.users
 create policy "Chacun peut modifier son propre profil" on public.users
   for update using (auth.uid() = id);
 
--- RLS filtre les lignes, pas les colonnes : l'email doit être bloqué explicitement.
-revoke select (email) on public.users from anon, authenticated;
-revoke update on public.users from authenticated;
-grant update (pseudo, ville) on public.users to authenticated;
-
 -- Crée automatiquement une ligne dans public.users à l'inscription (auth.signUp)
 create function public.handle_new_user()
 returns trigger
@@ -32,10 +31,9 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.users (id, email, pseudo, ville)
+  insert into public.users (id, pseudo, ville)
   values (
     new.id,
-    new.email,
     coalesce(new.raw_user_meta_data ->> 'pseudo', split_part(new.email, '@', 1)),
     new.raw_user_meta_data ->> 'ville'
   );
