@@ -69,6 +69,11 @@
     display: none;
   }
 
+  /* Remplacé par la bottom nav sur mobile */
+  .navbar-links-primary {
+    display: none;
+  }
+
   .navbar-links {
     gap: 0.5rem;
   }

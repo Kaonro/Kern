@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ElevationChart } from '../components/ElevationChart'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
@@ -179,10 +180,21 @@ export function RouteDetailPage() {
               )}
             </h1>
           )}
-          <div className="route-stats">
-            <span className="stat-pill">📏 {route.distance_km.toFixed(1)} km</span>
-            <span className="stat-pill">⛰️ +{route.denivele_m} m D+</span>
+          <div className="stat-tiles">
+            <div className="stat-tile">
+              <span className="value">📏 {route.distance_km.toFixed(1)} km</span>
+              <span className="label">Distance</span>
+            </div>
+            <div className="stat-tile">
+              <span className="value">⛰️ +{route.denivele_m} m</span>
+              <span className="label">Dénivelé</span>
+            </div>
           </div>
+          {route.gpx_track.some((p) => p.ele !== undefined) && (
+            <div className="elevation-section">
+              <ElevationChart points={route.gpx_track} />
+            </div>
+          )}
           {route.users?.pseudo && <p className="notice contributor">🙋 Ajouté par {route.users.pseudo}</p>}
         </div>
       </div>
