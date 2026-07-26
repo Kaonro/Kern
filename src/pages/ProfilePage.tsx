@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { IconCheck, IconLock, IconSpinner, IconUser, IconWarningTriangle } from '../components/icons'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { fetchProfile, updateProfile } from '../lib/profileApi'
@@ -33,7 +34,7 @@ export function ProfilePage() {
     setMessage('')
     try {
       await updateProfile(session.user.id, { pseudo, ville })
-      setMessage('✅ Profil mis à jour.')
+      setMessage('Profil mis à jour.')
     } catch (err) {
       setError(toFriendlyError(err))
     } finally {
@@ -44,7 +45,9 @@ export function ProfilePage() {
   if (!session) {
     return (
       <div className="empty-state">
-        <span className="big-emoji">🔒</span>
+        <span className="big-icon">
+          <IconLock />
+        </span>
         <h1>Mon profil</h1>
         <p>
           Connecte-toi pour voir ton profil. <Link to="/auth">Se connecter</Link>
@@ -56,7 +59,9 @@ export function ProfilePage() {
   if (loading) {
     return (
       <div className="loading-state">
-        <span className="big-emoji">⏳</span>
+        <span className="big-icon">
+          <IconSpinner />
+        </span>
         Chargement du profil...
       </div>
     )
@@ -64,7 +69,9 @@ export function ProfilePage() {
 
   return (
     <div className="page-padding">
-      <h1>👤 Mon profil</h1>
+      <h1>
+        <IconUser /> Mon profil
+      </h1>
       <div className="card">
         <form onSubmit={handleSave}>
           <label>
@@ -75,11 +82,25 @@ export function ProfilePage() {
             Ville
             <input type="text" value={ville} onChange={(e) => setVille(e.target.value)} placeholder="optionnel" />
           </label>
-          <p className="notice">📧 {session.user.email}</p>
-          {error && <p className="error">{error}</p>}
-          {message && <p className="notice">{message}</p>}
+          <p className="notice">{session.user.email}</p>
+          {error && (
+            <p className="error">
+              <IconWarningTriangle /> {error}
+            </p>
+          )}
+          {message && (
+            <p className="notice">
+              <IconCheck /> {message}
+            </p>
+          )}
           <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? '⏳ Enregistrement...' : '💾 Enregistrer'}
+            {saving ? (
+              <>
+                <IconSpinner /> Enregistrement...
+              </>
+            ) : (
+              'Enregistrer'
+            )}
           </button>
         </form>
       </div>

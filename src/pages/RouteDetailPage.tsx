@@ -1,15 +1,28 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ElevationChart } from '../components/ElevationChart'
+import {
+  IconArrowLeft,
+  IconCalendar,
+  IconCompass,
+  IconEdit,
+  IconElevation,
+  IconFlag,
+  IconLock,
+  IconSpinner,
+  IconTrail,
+  IconUser,
+  IconWarningTriangle,
+  ReportTypeIcon,
+  TechniciteIcon,
+} from '../components/icons'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
 import { createReport, fetchReportsForRoute } from '../lib/reportsApi'
 import {
-  REPORT_TYPE_EMOJIS,
   REPORT_TYPE_LABELS,
-  TECHNICITE_EMOJIS,
   TECHNICITE_LABELS,
   type Report,
   type ReportType,
@@ -133,7 +146,9 @@ export function RouteDetailPage() {
   if (loading) {
     return (
       <div className="loading-state">
-        <span className="big-emoji">🥾</span>
+        <span className="big-icon">
+          <IconSpinner />
+        </span>
         Chargement du parcours...
       </div>
     )
@@ -142,7 +157,9 @@ export function RouteDetailPage() {
   if (!route) {
     return (
       <div className="empty-state">
-        <span className="big-emoji">🤷</span>
+        <span className="big-icon">
+          <IconCompass />
+        </span>
         {error || 'Parcours introuvable.'}
       </div>
     )
@@ -153,10 +170,14 @@ export function RouteDetailPage() {
   return (
     <div className="page-padding route-detail">
       <Link to="/" className="back-link">
-        ⬅️ Retour à la carte
+        <IconArrowLeft /> Retour à la carte
       </Link>
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error">
+          <IconWarningTriangle /> {error}
+        </p>
+      )}
 
       <div className="card route-header">
         <div style={{ width: '100%' }}>
@@ -164,7 +185,7 @@ export function RouteDetailPage() {
             <div className="nom-edit">
               <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} />
               <button type="button" className="btn btn-primary" onClick={handleSaveNom} disabled={savingNom}>
-                {savingNom ? '⏳' : '💾'}
+                {savingNom ? <IconSpinner /> : <IconEdit />}
               </button>
               <button type="button" className="link-button" onClick={() => setEditingNom(false)}>
                 Annuler
@@ -172,21 +193,25 @@ export function RouteDetailPage() {
             </div>
           ) : (
             <h1>
-              🏔️ {route.nom}{' '}
+              {route.nom}{' '}
               {session && (
                 <button type="button" className="link-button edit-nom-btn" onClick={() => setEditingNom(true)}>
-                  ✏️
+                  <IconEdit />
                 </button>
               )}
             </h1>
           )}
           <div className="stat-tiles">
             <div className="stat-tile">
-              <span className="value">📏 {route.distance_km.toFixed(1)} km</span>
+              <span className="value">
+                <IconTrail /> {route.distance_km.toFixed(1)} km
+              </span>
               <span className="label">Distance</span>
             </div>
             <div className="stat-tile">
-              <span className="value">⛰️ +{route.denivele_m} m</span>
+              <span className="value">
+                <IconElevation /> +{route.denivele_m} m
+              </span>
               <span className="label">Dénivelé</span>
             </div>
           </div>
@@ -195,12 +220,18 @@ export function RouteDetailPage() {
               <ElevationChart points={route.gpx_track} />
             </div>
           )}
-          {route.users?.pseudo && <p className="notice contributor">🙋 Ajouté par {route.users.pseudo}</p>}
+          {route.users?.pseudo && (
+            <p className="notice contributor">
+              <IconUser /> Ajouté par {route.users.pseudo}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="card">
-        <h2>🎯 Technicité</h2>
+        <h2>
+          <TechniciteIcon technicite="tres_technique" /> Technicité
+        </h2>
         <div className="technicite-votes">
           {(Object.keys(TECHNICITE_LABELS) as Technicite[]).map((t) => (
             <button
@@ -210,37 +241,56 @@ export function RouteDetailPage() {
               disabled={!session}
               onClick={() => handleVote(t)}
             >
-              {TECHNICITE_EMOJIS[t]} {TECHNICITE_LABELS[t]}
+              <TechniciteIcon technicite={t} /> {TECHNICITE_LABELS[t]}
             </button>
           ))}
         </div>
-        {!session && <p className="notice">🔒 Connecte-toi pour voter.</p>}
+        {!session && (
+          <p className="notice">
+            <IconLock /> Connecte-toi pour voter.
+          </p>
+        )}
       </div>
 
       <div className="card">
-        <h2>📅 Praticabilité saisonnière</h2>
+        <h2>
+          <IconCalendar /> Praticabilité saisonnière
+        </h2>
         <textarea
           value={saisonnalite}
           onChange={(e) => setSaisonnalite(e.target.value)}
-          placeholder="ex. praticable mai à octobre, enneigé l'hiver ❄️"
+          placeholder="ex. praticable mai à octobre, enneigé l'hiver"
           rows={2}
           disabled={!session}
         />
         {session && (
-          <button type="button" className="btn btn-primary" onClick={handleSaveSaisonnalite} disabled={savingSaisonnalite}>
-            {savingSaisonnalite ? '⏳ Enregistrement...' : '💾 Enregistrer'}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSaveSaisonnalite}
+            disabled={savingSaisonnalite}
+          >
+            {savingSaisonnalite ? (
+              <>
+                <IconSpinner /> Enregistrement...
+              </>
+            ) : (
+              'Enregistrer'
+            )}
           </button>
         )}
       </div>
 
       <div className="card">
-        <h2>📢 Signalements</h2>
+        <h2>
+          <IconFlag /> Signalements
+        </h2>
         {session ? (
           <form className="report-form" onSubmit={handleAddReport}>
             <select value={newReportType} onChange={(e) => setNewReportType(e.target.value as ReportType)}>
               {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
-                  {REPORT_TYPE_EMOJIS[value as ReportType]} {label}
+                  {label}
                 </option>
               ))}
             </select>
@@ -251,11 +301,13 @@ export function RouteDetailPage() {
               onChange={(e) => setNewReportDescription(e.target.value)}
             />
             <button type="submit" className="btn btn-accent" disabled={submittingReport}>
-              {submittingReport ? '⏳' : '🚨 Signaler'}
+              {submittingReport ? <IconSpinner /> : <IconFlag />} Signaler
             </button>
           </form>
         ) : (
-          <p className="notice">🔒 Connecte-toi pour ajouter un signalement.</p>
+          <p className="notice">
+            <IconLock /> Connecte-toi pour ajouter un signalement.
+          </p>
         )}
 
         <ul className="report-list">
@@ -263,14 +315,14 @@ export function RouteDetailPage() {
             <li key={report.id} style={{ opacity: relevanceOpacity(report.created_at) }}>
               <div className="report-item-header">
                 <strong>
-                  {REPORT_TYPE_EMOJIS[report.type]} {REPORT_TYPE_LABELS[report.type]}
+                  <ReportTypeIcon type={report.type} /> {REPORT_TYPE_LABELS[report.type]}
                 </strong>
                 <time>{new Date(report.created_at).toLocaleDateString('fr-FR')}</time>
               </div>
               {report.description && <p>{report.description}</p>}
             </li>
           ))}
-          {reports.length === 0 && <li className="empty">🤷 Aucun signalement pour l'instant.</li>}
+          {reports.length === 0 && <li className="empty">Aucun signalement pour l'instant.</li>}
         </ul>
       </div>
     </div>

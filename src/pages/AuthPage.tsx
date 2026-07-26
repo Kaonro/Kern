@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { IconArrowRight, IconCheck, IconKey, IconSpinner, IconWarningTriangle } from '../components/icons'
 import { toFriendlyError } from '../lib/errors'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
@@ -8,40 +9,40 @@ export function AuthPage() {
   const [password, setPassword] = useState('')
   const [pseudo, setPseudo] = useState('')
   const [ville, setVille] = useState('')
-  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setMessage('')
+    setError('')
+    setSuccess('')
 
-    const { error } =
+    const { error: authError } =
       mode === 'login'
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password, options: { data: { pseudo, ville } } })
 
     setLoading(false)
-    setMessage(
-      error ? `❌ ${toFriendlyError(error)}` : mode === 'login' ? '✅ Connecté.' : '✅ Compte créé, vérifie ta boîte mail.',
-    )
+    if (authError) {
+      setError(toFriendlyError(authError))
+    } else {
+      setSuccess(mode === 'login' ? 'Connecté.' : 'Compte créé, vérifie ta boîte mail.')
+    }
   }
 
   return (
     <div className="page-padding auth-page">
       <div className="card auth-card">
-        <h1>{mode === 'login' ? '🔑 Connexion' : '🙋 Inscription'}</h1>
+        <h1>
+          <IconKey /> {mode === 'login' ? 'Connexion' : 'Inscription'}
+        </h1>
         <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="📧 email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input
             type="password"
-            placeholder="🔒 mot de passe"
+            placeholder="mot de passe"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -51,21 +52,27 @@ export function AuthPage() {
             <>
               <input
                 type="text"
-                placeholder="🙂 pseudo"
+                placeholder="pseudo"
                 value={pseudo}
                 onChange={(e) => setPseudo(e.target.value)}
                 required
               />
               <input
                 type="text"
-                placeholder="📍 ville (optionnel)"
+                placeholder="ville (optionnel)"
                 value={ville}
                 onChange={(e) => setVille(e.target.value)}
               />
             </>
           )}
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? '⏳' : mode === 'login' ? '➡️ Se connecter' : "🎉 S'inscrire"}
+            {loading ? (
+              <IconSpinner />
+            ) : (
+              <>
+                {mode === 'login' ? 'Se connecter' : "S'inscrire"} <IconArrowRight />
+              </>
+            )}
           </button>
         </form>
         <button
@@ -75,11 +82,20 @@ export function AuthPage() {
         >
           {mode === 'login' ? "Pas de compte ? S'inscrire" : 'Déjà un compte ? Se connecter'}
         </button>
-        {message && <p className="notice">{message}</p>}
+        {error && (
+          <p className="error">
+            <IconWarningTriangle /> {error}
+          </p>
+        )}
+        {success && (
+          <p className="notice">
+            <IconCheck /> {success}
+          </p>
+        )}
         {!isSupabaseConfigured && (
           <p className="notice">
-            ⚠️ Supabase n'est pas encore configuré (voir .env.example) — la connexion échouera tant que le projet
-            Supabase n'est pas créé.
+            <IconWarningTriangle /> Supabase n'est pas encore configuré (voir .env.example) — la connexion échouera
+            tant que le projet Supabase n'est pas créé.
           </p>
         )}
       </div>

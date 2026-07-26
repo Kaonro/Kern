@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
+import { IconCheck, IconCompass, IconFlag, IconMap, IconSpinner, IconWarningTriangle, ReportTypeIcon } from '../components/icons'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport } from '../lib/reportsApi'
-import { REPORT_TYPE_EMOJIS, REPORT_TYPE_LABELS, type ReportType, type RouteRecord } from '../types'
+import { REPORT_TYPE_LABELS, type ReportType, type RouteRecord } from '../types'
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
@@ -111,7 +112,7 @@ export function MapPage() {
         latitude: pickedPosition.lat,
         longitude: pickedPosition.lng,
       })
-      setSuccessMessage(`✅ Signalement ajouté sur "${nearestRoute.nom}"`)
+      setSuccessMessage(`Signalement ajouté sur "${nearestRoute.nom}"`)
       resetPlacement()
     } catch (err) {
       setPlaceError(toFriendlyError(err))
@@ -122,16 +123,30 @@ export function MapPage() {
 
   return (
     <div className="page-map">
-      {loading && <p className="map-empty-banner">⏳ Chargement des parcours...</p>}
-      {error && <p className="error map-error">⚠️ {error}</p>}
-      {!loading && !error && routes.length === 0 && (
-        <p className="map-empty-banner">🥾 Aucun parcours pour l'instant — sois le premier à en ajouter !</p>
+      {loading && (
+        <p className="map-empty-banner">
+          <IconSpinner /> Chargement des parcours...
+        </p>
       )}
-      {successMessage && <p className="map-empty-banner success">{successMessage}</p>}
+      {error && (
+        <p className="error map-error">
+          <IconWarningTriangle /> {error}
+        </p>
+      )}
+      {!loading && !error && routes.length === 0 && (
+        <p className="map-empty-banner">
+          <IconCompass /> Aucun parcours pour l'instant — sois le premier à en ajouter !
+        </p>
+      )}
+      {successMessage && (
+        <p className="map-empty-banner success">
+          <IconCheck /> {successMessage}
+        </p>
+      )}
 
       {step === 'choosing-location' && (
         <div className="picking-banner">
-          📍 Touche la carte à l'endroit du signalement
+          <IconMap /> Touche la carte à l'endroit du signalement
           <button type="button" className="link-button" onClick={resetPlacement}>
             Annuler
           </button>
@@ -148,19 +163,25 @@ export function MapPage() {
 
       {step === 'idle' && (
         <button type="button" className="map-fab" onClick={handleOpenReportMenu} aria-label="Ajouter un signalement">
-          🚨
+          <IconFlag />
         </button>
       )}
 
       {step === 'action-sheet' && (
         <div className="action-sheet">
-          <h2>🚨 Ajouter un signalement</h2>
-          {placeError && <p className="error">{placeError}</p>}
+          <h2>
+            <IconFlag /> Ajouter un signalement
+          </h2>
+          {placeError && (
+            <p className="error">
+              <IconWarningTriangle /> {placeError}
+            </p>
+          )}
           <button type="button" className="btn btn-primary btn-block" onClick={handleUseMyPosition}>
-            📍 Utiliser ma position actuelle
+            <IconCompass /> Utiliser ma position actuelle
           </button>
           <button type="button" className="btn btn-accent btn-block" onClick={handleChooseOnMap}>
-            🗺️ Choisir un point sur la carte
+            <IconMap /> Choisir un point sur la carte
           </button>
           <button type="button" className="link-button auth-switch" onClick={resetPlacement}>
             Annuler
@@ -170,13 +191,17 @@ export function MapPage() {
 
       {step === 'locating' && (
         <div className="action-sheet">
-          <p className="notice">📡 Recherche de ta position...</p>
+          <p className="notice">
+            <IconSpinner /> Recherche de ta position...
+          </p>
         </div>
       )}
 
       {step === 'choosing-location' && placeError && (
         <div className="action-sheet">
-          <p className="error">{placeError}</p>
+          <p className="error">
+            <IconWarningTriangle /> {placeError}
+          </p>
           <button type="button" className="link-button" onClick={resetPlacement}>
             Annuler
           </button>
@@ -185,23 +210,40 @@ export function MapPage() {
 
       {step === 'form' && nearestRoute && (
         <form className="action-sheet" onSubmit={handleSubmitReport}>
-          <h2>🚨 Signaler sur "{nearestRoute.nom}"</h2>
+          <h2>
+            <IconFlag /> Signaler sur "{nearestRoute.nom}"
+          </h2>
           <select value={reportType} onChange={(e) => setReportType(e.target.value as ReportType)}>
             {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
-                {REPORT_TYPE_EMOJIS[value as ReportType]} {label}
+                {label}
               </option>
             ))}
           </select>
+          <div className="report-type-preview">
+            <ReportTypeIcon type={reportType} /> {REPORT_TYPE_LABELS[reportType]}
+          </div>
           <input
             type="text"
             placeholder="Description courte"
             value={reportDescription}
             onChange={(e) => setReportDescription(e.target.value)}
           />
-          {placeError && <p className="error">{placeError}</p>}
+          {placeError && (
+            <p className="error">
+              <IconWarningTriangle /> {placeError}
+            </p>
+          )}
           <button type="submit" className="btn btn-accent btn-block" disabled={submitting}>
-            {submitting ? '⏳ Envoi...' : '🚨 Valider le signalement'}
+            {submitting ? (
+              <>
+                <IconSpinner /> Envoi...
+              </>
+            ) : (
+              <>
+                <IconFlag /> Valider le signalement
+              </>
+            )}
           </button>
           <button type="button" className="link-button auth-switch" onClick={resetPlacement}>
             Annuler

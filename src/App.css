@@ -4,6 +4,37 @@
   height: 100vh;
 }
 
+/* Icônes maison (src/components/icons.tsx) */
+.icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+
+.icon-spin {
+  animation: icon-spin 0.9s linear infinite;
+}
+
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.report-type-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.report-type-preview .icon {
+  font-size: 1.3rem;
+  color: var(--color-accent);
+}
+
 .app-main {
   flex: 1;
   min-height: 0;
@@ -52,19 +83,23 @@
   position: absolute;
   right: 1.25rem;
   bottom: 1.25rem;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   border: none;
   background: var(--color-accent);
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 2.1rem;
   box-shadow: var(--shadow-md);
   cursor: pointer;
   z-index: 550;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.map-fab .icon {
+  vertical-align: 0;
 }
 
 .map-fab:active {
@@ -384,11 +419,12 @@
   color: var(--color-text-muted);
 }
 
-.empty-state .big-emoji,
-.loading-state .big-emoji {
+.empty-state .big-icon,
+.loading-state .big-icon {
   font-size: 2.5rem;
   display: block;
   margin-bottom: 0.5rem;
+  color: var(--color-primary);
 }
 
 /* Upload GPX */
@@ -414,6 +450,11 @@
 
 .dropzone input[type='file'] {
   display: none;
+}
+
+.dropzone-icon {
+  font-size: 2.2rem;
+  color: var(--color-primary);
 }
 
 .gpx-preview ul {
