@@ -7,7 +7,7 @@ import {
   IconCompass,
   IconEdit,
   IconElevation,
-  IconFlag,
+  IconAlert,
   IconLock,
   IconSpinner,
   IconTrail,
@@ -283,7 +283,7 @@ export function RouteDetailPage() {
 
       <div className="card">
         <h2>
-          <IconFlag /> Signalements
+          <IconAlert /> Signalements
         </h2>
         {session ? (
           <form className="report-form" onSubmit={handleAddReport}>
@@ -301,7 +301,7 @@ export function RouteDetailPage() {
               onChange={(e) => setNewReportDescription(e.target.value)}
             />
             <button type="submit" className="btn btn-accent" disabled={submittingReport}>
-              {submittingReport ? <IconSpinner /> : <IconFlag />} Signaler
+              {submittingReport ? <IconSpinner /> : <IconAlert />} Signaler
             </button>
           </form>
         ) : (

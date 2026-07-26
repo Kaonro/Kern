@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
-import { IconCheck, IconCompass, IconFlag, IconMap, IconSpinner, IconWarningTriangle, ReportTypeIcon } from '../components/icons'
+import { IconCheck, IconCompass, IconAlert, IconMap, IconSpinner, IconWarningTriangle, ReportTypeIcon } from '../components/icons'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
@@ -163,14 +163,14 @@ export function MapPage() {
 
       {step === 'idle' && (
         <button type="button" className="map-fab" onClick={handleOpenReportMenu} aria-label="Ajouter un signalement">
-          <IconFlag />
+          <IconAlert />
         </button>
       )}
 
       {step === 'action-sheet' && (
         <div className="action-sheet">
           <h2>
-            <IconFlag /> Ajouter un signalement
+            <IconAlert /> Ajouter un signalement
           </h2>
           {placeError && (
             <p className="error">
@@ -211,7 +211,7 @@ export function MapPage() {
       {step === 'form' && nearestRoute && (
         <form className="action-sheet" onSubmit={handleSubmitReport}>
           <h2>
-            <IconFlag /> Signaler sur "{nearestRoute.nom}"
+            <IconAlert /> Signaler sur "{nearestRoute.nom}"
           </h2>
           <select value={reportType} onChange={(e) => setReportType(e.target.value as ReportType)}>
             {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
@@ -241,7 +241,7 @@ export function MapPage() {
               </>
             ) : (
               <>
-                <IconFlag /> Valider le signalement
+                <IconAlert /> Valider le signalement
               </>
             )}
           </button>

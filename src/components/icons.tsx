@@ -220,12 +220,13 @@ export function IconArrowRight(props: IconProps) {
   )
 }
 
-/** Drapeau (signalement). */
-export function IconFlag(props: IconProps) {
+/** Point d'exclamation dans un cercle (signalement). */
+export function IconAlert(props: IconProps) {
   return (
     <Base {...props}>
-      <line x1="6" y1="21" x2="6" y2="3" />
-      <path d="M6 4l12 3-12 3z" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="9" />
+      <line x1="12" y1="7.5" x2="12" y2="13" />
+      <circle cx="12" cy="16.3" r="1" fill="currentColor" stroke="none" />
     </Base>
   )
 }
