@@ -1,6 +1,15 @@
+function extractMessage(err: unknown): string {
+  if (err instanceof Error) return err.message
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    const message = (err as { message: unknown }).message
+    if (typeof message === 'string') return message
+  }
+  return String(err)
+}
+
 /** Traduit les erreurs techniques (réseau, Postgres/RLS) en messages compréhensibles. */
 export function toFriendlyError(err: unknown): string {
-  const raw = err instanceof Error ? err.message : String(err)
+  const raw = extractMessage(err)
   const lower = raw.toLowerCase()
 
   if (lower.includes('failed to fetch') || lower.includes('networkerror')) {
