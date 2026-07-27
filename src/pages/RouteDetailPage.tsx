@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ElevationChart } from '../components/ElevationChart'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
+import { RouteMap } from '../components/RouteMap'
 import {
   IconArrowLeft,
   IconCalendar,
@@ -56,6 +57,7 @@ export function RouteDetailPage() {
 
   const [newReportType, setNewReportType] = useState<ReportType>('autre')
   const [newReportDescription, setNewReportDescription] = useState('')
+  const [newReportPosition, setNewReportPosition] = useState<{ lat: number; lng: number } | null>(null)
   const [submittingReport, setSubmittingReport] = useState(false)
   const [deletingReportId, setDeletingReportId] = useState<string | null>(null)
 
@@ -129,15 +131,17 @@ export function RouteDetailPage() {
     if (!route || !session) return
     setSubmittingReport(true)
     try {
+      const position = newReportPosition ?? route.gpx_track[0]
       await createReport({
         routeId: route.id,
         userId: session.user.id,
         type: newReportType,
         description: newReportDescription,
-        latitude: route.gpx_track[0].lat,
-        longitude: route.gpx_track[0].lng,
+        latitude: position.lat,
+        longitude: position.lng,
       })
       setNewReportDescription('')
+      setNewReportPosition(null)
       setReports(await fetchReportsForRoute(route.id))
     } catch (err) {
       setError(toFriendlyError(err))
@@ -322,6 +326,19 @@ export function RouteDetailPage() {
         </h2>
         {session ? (
           <form className="report-form" onSubmit={handleAddReport}>
+            <p className="notice">
+              <IconCompass /> Touche la carte à l'endroit exact du problème (optionnel, sinon le début du parcours
+              est utilisé).
+            </p>
+            <div className="report-position-picker">
+              <RouteMap
+                routes={[route]}
+                reports={reports}
+                pickMode
+                onPick={(lat, lng) => setNewReportPosition({ lat, lng })}
+                pickedPosition={newReportPosition}
+              />
+            </div>
             <ReportTypeSelect value={newReportType} onChange={setNewReportType} />
             <input
               type="text"

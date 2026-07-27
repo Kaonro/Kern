@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Fragment, useEffect, useMemo } from 'react'
 import {
   CircleMarker,
   MapContainer,
@@ -16,6 +16,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
 import { REPORT_TYPE_COLORS } from './icons'
+import { extractTrackSegment, nearestTrackIndex } from '../lib/geo'
 import { relevanceOpacity } from '../lib/reportRelevance'
 import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
 
@@ -78,6 +79,16 @@ export function RouteMap({
   onPick,
   pickedPosition,
 }: RouteMapProps) {
+  const routesById = useMemo(() => new Map(routes.map((route) => [route.id, route])), [routes])
+
+  function handleReportClick(e: { latlng: { lat: number; lng: number } }, routeId: string) {
+    if (pickMode) {
+      onPick?.(e.latlng.lat, e.latlng.lng)
+    } else {
+      onSelectRoute?.(routeId)
+    }
+  }
+
   return (
     <MapContainer center={CHAMBERY_CENTER} zoom={12} zoomControl={false} style={{ height: '100%', width: '100%' }}>
       <TileLayer
@@ -106,28 +117,57 @@ export function RouteMap({
           <Tooltip sticky>{route.nom}</Tooltip>
         </Polyline>
       ))}
-      {reports.map((report) => (
-        <CircleMarker
-          key={report.id}
-          center={[report.latitude, report.longitude]}
-          radius={7}
-          pathOptions={{
-            color: '#fff',
-            weight: 2,
-            fillColor: REPORT_TYPE_COLORS[report.type],
-            fillOpacity: relevanceOpacity(report.created_at),
-            opacity: 1,
-          }}
-          eventHandlers={{
-            click: () => onSelectRoute?.(report.route_id),
-          }}
-        >
+      {reports.map((report) => {
+        const parentRoute = routesById.get(report.route_id)
+        const segment = parentRoute
+          ? extractTrackSegment(
+              parentRoute.gpx_track,
+              nearestTrackIndex(parentRoute.gpx_track, { lat: report.latitude, lng: report.longitude }),
+            )
+          : null
+        const opacity = relevanceOpacity(report.created_at)
+        const tooltip = (
           <Tooltip>
             {REPORT_TYPE_LABELS[report.type]}
             {report.description ? ` — ${report.description}` : ''}
           </Tooltip>
-        </CircleMarker>
-      ))}
+        )
+
+        return (
+          <Fragment key={report.id}>
+            {segment && segment.length >= 2 && (
+              // Portion du tracé "rayée" dans la couleur du type de signalement, superposée à la ligne verte.
+              <Polyline
+                positions={segment.map((p) => [p.lat, p.lng])}
+                pathOptions={{
+                  color: REPORT_TYPE_COLORS[report.type],
+                  weight: 7,
+                  opacity,
+                  dashArray: '10 8',
+                  lineCap: 'round',
+                }}
+                eventHandlers={{ click: (e) => handleReportClick(e, report.route_id) }}
+              >
+                {tooltip}
+              </Polyline>
+            )}
+            <CircleMarker
+              center={[report.latitude, report.longitude]}
+              radius={7}
+              pathOptions={{
+                color: '#fff',
+                weight: 2,
+                fillColor: REPORT_TYPE_COLORS[report.type],
+                fillOpacity: opacity,
+                opacity: 1,
+              }}
+              eventHandlers={{ click: (e) => handleReportClick(e, report.route_id) }}
+            >
+              {tooltip}
+            </CircleMarker>
+          </Fragment>
+        )
+      })}
       {pickedPosition && <Marker position={[pickedPosition.lat, pickedPosition.lng]} />}
     </MapContainer>
   )
