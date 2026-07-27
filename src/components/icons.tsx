@@ -128,6 +128,15 @@ export function IconDropletSlash(props: IconProps) {
   )
 }
 
+/** Goutte pleine (bascule d'affichage des points d'eau sur la carte). */
+export function IconDroplet(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" />
+    </Base>
+  )
+}
+
 /** Ondulations (passage boueux). */
 export function IconMud(props: IconProps) {
   return (

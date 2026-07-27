@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
-import { IconCheck, IconCompass, IconAlert, IconMap, IconSpinner, IconWarningTriangle } from '../components/icons'
+import { IconCheck, IconCompass, IconAlert, IconDroplet, IconMap, IconSpinner, IconWarningTriangle } from '../components/icons'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
@@ -30,6 +30,7 @@ export function MapPage() {
   const [routes, setRoutes] = useState<RouteRecord[]>([])
   const [reports, setReports] = useState<Report[]>([])
   const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
+  const [showWaterPoints, setShowWaterPoints] = useState(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -171,12 +172,24 @@ export function MapPage() {
       <RouteMap
         routes={routes}
         reports={reports}
-        waterPoints={waterPoints}
+        waterPoints={showWaterPoints ? waterPoints : []}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}
         pickedPosition={pickedPosition}
       />
+
+      {waterPoints.length > 0 && (
+        <button
+          type="button"
+          className={showWaterPoints ? 'water-toggle-btn active' : 'water-toggle-btn'}
+          onClick={() => setShowWaterPoints((v) => !v)}
+          aria-pressed={showWaterPoints}
+          aria-label={showWaterPoints ? "Masquer les points d'eau" : "Afficher les points d'eau"}
+        >
+          <IconDroplet />
+        </button>
+      )}
 
       {step === 'idle' && (
         <button type="button" className="map-fab" onClick={handleOpenReportMenu} aria-label="Ajouter un signalement">
