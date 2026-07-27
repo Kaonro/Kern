@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
-import { IconCheck, IconCompass, IconAlert, IconMap, IconSpinner, IconWarningTriangle, ReportTypeIcon } from '../components/icons'
+import { IconCheck, IconCompass, IconAlert, IconMap, IconSpinner, IconWarningTriangle } from '../components/icons'
+import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport } from '../lib/reportsApi'
-import { REPORT_TYPE_LABELS, type ReportType, type RouteRecord } from '../types'
+import type { ReportType, RouteRecord } from '../types'
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
@@ -213,16 +214,7 @@ export function MapPage() {
           <h2>
             <IconAlert /> Signaler sur "{nearestRoute.nom}"
           </h2>
-          <select value={reportType} onChange={(e) => setReportType(e.target.value as ReportType)}>
-            {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <div className="report-type-preview">
-            <ReportTypeIcon type={reportType} /> {REPORT_TYPE_LABELS[reportType]}
-          </div>
+          <ReportTypeSelect value={reportType} onChange={setReportType} />
           <input
             type="text"
             placeholder="Description courte"

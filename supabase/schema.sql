@@ -154,6 +154,10 @@ create type public.report_type_enum as enum (
   'danger_eboulement',
   'balisage_manquant',
   'animal',
+  'route_fermee',
+  'chemin_prive',
+  'interdit_pietons',
+  'interdit_velos',
   'autre'
 );
 

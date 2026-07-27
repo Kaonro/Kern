@@ -21,20 +21,6 @@
   }
 }
 
-.report-type-preview {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 700;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
-}
-
-.report-type-preview .icon {
-  font-size: 1.3rem;
-  color: var(--color-accent);
-}
-
 .app-main {
   flex: 1;
   min-height: 0;
@@ -148,7 +134,6 @@
   gap: 0.75rem;
 }
 
-.action-sheet select,
 .action-sheet input {
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--color-border);
@@ -358,7 +343,6 @@
   flex-wrap: wrap;
 }
 
-.report-form select,
 .report-form input {
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--color-border);

@@ -12,6 +12,10 @@ export type ReportType =
   | 'danger_eboulement'
   | 'balisage_manquant'
   | 'animal'
+  | 'route_fermee'
+  | 'chemin_prive'
+  | 'interdit_pietons'
+  | 'interdit_velos'
   | 'autre'
 
 export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
@@ -20,6 +24,10 @@ export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   danger_eboulement: 'Danger / éboulement',
   balisage_manquant: 'Balisage manquant',
   animal: 'Animal sur le sentier',
+  route_fermee: 'Route / chemin fermé',
+  chemin_prive: 'Chemin privé',
+  interdit_pietons: 'Interdit aux piétons',
+  interdit_velos: 'Interdit aux vélos',
   autre: 'Autre',
 }
 

@@ -172,6 +172,61 @@ export function IconPaw(props: IconProps) {
   )
 }
 
+/** Barrière à rayures (route / chemin fermé). */
+export function IconBarrier(props: IconProps) {
+  return (
+    <Base {...props}>
+      <line x1="5" y1="20" x2="5" y2="14" />
+      <line x1="19" y1="20" x2="19" y2="14" />
+      <rect x="3" y="9" width="18" height="4.5" rx="1" />
+      <line x1="5" y1="9" x2="9.5" y2="13.5" />
+      <line x1="10.5" y1="9" x2="15" y2="13.5" />
+      <line x1="16" y1="9" x2="19" y2="12" />
+    </Base>
+  )
+}
+
+/** Clôture à piquets (chemin / propriété privée). */
+export function IconFence(props: IconProps) {
+  return (
+    <Base {...props}>
+      <line x1="5" y1="7" x2="5" y2="20" />
+      <line x1="12" y1="5" x2="12" y2="20" />
+      <line x1="19" y1="7" x2="19" y2="20" />
+      <line x1="3" y1="11" x2="21" y2="11" />
+      <line x1="3" y1="16" x2="21" y2="16" />
+    </Base>
+  )
+}
+
+/** Silhouette marcheur barrée (interdit aux piétons). */
+export function IconPedestrianSlash(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="11" cy="5" r="1.8" fill="currentColor" stroke="none" />
+      <path d="M11 8v5" />
+      <path d="M11 9.5l-3.5 2.5" />
+      <path d="M11 9.5l3.5 1.5" />
+      <path d="M11 13l-2.5 7" />
+      <path d="M11 13l2.5 7" />
+      <line x1="4" y1="20" x2="20" y2="4" />
+    </Base>
+  )
+}
+
+/** Vélo barré (interdit aux vélos). */
+export function IconBikeSlash(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="6" cy="17" r="3" />
+      <circle cx="18" cy="17" r="3" />
+      <path d="M6 17l5-10h3l4 10" />
+      <path d="M11 7h3" />
+      <line x1="3" y1="20" x2="21" y2="4" />
+    </Base>
+  )
+}
+
 /** Repère générique (autre signalement). */
 export function IconPin(props: IconProps) {
   return (
@@ -272,6 +327,29 @@ export function TechniciteIcon({ technicite, ...props }: IconProps & { technicit
   return <IconLevel level={TECHNICITE_LEVELS[technicite]} {...props} />
 }
 
+/** Chevron bas (déclencheur de menu déroulant). */
+export function IconChevronDown(props: IconProps) {
+  return (
+    <Base {...props}>
+      <polyline points="6,9 12,15 18,9" />
+    </Base>
+  )
+}
+
+/** Couleur d'accent par type de signalement, pour les badges du menu déroulant. */
+export const REPORT_TYPE_COLORS: Record<ReportType, string> = {
+  eau_a_sec: '#2f7fb8',
+  passage_boueux: '#8a6642',
+  danger_eboulement: '#c0392b',
+  balisage_manquant: '#c99a2e',
+  animal: '#6b8f3f',
+  route_fermee: '#a8432f',
+  chemin_prive: '#5b6b7a',
+  interdit_pietons: '#7c5cbf',
+  interdit_velos: '#2c9c8f',
+  autre: '#6f7a6c',
+}
+
 export function ReportTypeIcon({ type, ...props }: IconProps & { type: ReportType }) {
   switch (type) {
     case 'eau_a_sec':
@@ -284,6 +362,14 @@ export function ReportTypeIcon({ type, ...props }: IconProps & { type: ReportTyp
       return <IconSignpost {...props} />
     case 'animal':
       return <IconPaw {...props} />
+    case 'route_fermee':
+      return <IconBarrier {...props} />
+    case 'chemin_prive':
+      return <IconFence {...props} />
+    case 'interdit_pietons':
+      return <IconPedestrianSlash {...props} />
+    case 'interdit_velos':
+      return <IconBikeSlash {...props} />
     case 'autre':
       return <IconPin {...props} />
   }

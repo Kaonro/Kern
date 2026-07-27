@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ElevationChart } from '../components/ElevationChart'
+import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import {
   IconArrowLeft,
   IconCalendar,
@@ -311,13 +312,7 @@ export function RouteDetailPage() {
         </h2>
         {session ? (
           <form className="report-form" onSubmit={handleAddReport}>
-            <select value={newReportType} onChange={(e) => setNewReportType(e.target.value as ReportType)}>
-              {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
+            <ReportTypeSelect value={newReportType} onChange={setNewReportType} />
             <input
               type="text"
               placeholder="Description courte"
