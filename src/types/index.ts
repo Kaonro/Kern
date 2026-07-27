@@ -16,6 +16,7 @@ export type ReportType =
   | 'chemin_prive'
   | 'interdit_pietons'
   | 'interdit_velos'
+  | 'interdit_chiens'
   | 'autre'
 
 export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
@@ -28,6 +29,7 @@ export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
   chemin_prive: 'Chemin privé',
   interdit_pietons: 'Interdit aux piétons',
   interdit_velos: 'Interdit aux vélos',
+  interdit_chiens: 'Interdit aux chiens',
   autre: 'Autre',
 }
 

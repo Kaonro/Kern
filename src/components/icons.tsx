@@ -236,6 +236,20 @@ export function IconBikeSlash(props: IconProps) {
   )
 }
 
+/** Silhouette de chien barrée (interdit aux chiens, canicross). */
+export function IconDogSlash(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M4 16c0-2.5 2-4 4.5-4h4c1.5 0 2.5-1 3-2.3.3-.7 1.3-.6 1.4.1.2 1.1-.2 2.3-1 3.1.6.5 1.1 1.3 1.1 2.1v1" />
+      <path d="M6 12l-1.5-1.5" />
+      <path d="M6 16v3" />
+      <path d="M10 16v3" />
+      <path d="M15 16v3" />
+      <line x1="3" y1="20" x2="21" y2="4" />
+    </Base>
+  )
+}
+
 /** Repère générique (autre signalement). */
 export function IconPin(props: IconProps) {
   return (
@@ -369,6 +383,7 @@ export const REPORT_TYPE_COLORS: Record<ReportType, string> = {
   chemin_prive: '#5b6b7a',
   interdit_pietons: '#7c5cbf',
   interdit_velos: '#2c9c8f',
+  interdit_chiens: '#c2547a',
   autre: '#6f7a6c',
 }
 
@@ -392,6 +407,8 @@ export function ReportTypeIcon({ type, ...props }: IconProps & { type: ReportTyp
       return <IconPedestrianSlash {...props} />
     case 'interdit_velos':
       return <IconBikeSlash {...props} />
+    case 'interdit_chiens':
+      return <IconDogSlash {...props} />
     case 'autre':
       return <IconPin {...props} />
   }
