@@ -179,3 +179,6 @@ create policy "Les signalements sont visibles par tous" on public.reports
 
 create policy "Un utilisateur connecté peut signaler" on public.reports
   for insert with check (auth.uid() = user_id);
+
+create policy "Un utilisateur peut supprimer ses propres signalements" on public.reports
+  for delete using (auth.uid() = user_id);

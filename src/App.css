@@ -389,6 +389,21 @@
   white-space: nowrap;
 }
 
+.report-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.report-delete-btn {
+  color: var(--color-text-muted);
+  line-height: 0;
+}
+
+.report-delete-btn:hover:not(:disabled) {
+  color: var(--color-danger);
+}
+
 .report-list li.empty {
   color: var(--color-text-muted);
   border-left-color: var(--color-border);

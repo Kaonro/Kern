@@ -34,3 +34,13 @@ export async function createReport(params: {
   if (error) throw error
   return data
 }
+
+export async function deleteReport(reportId: string): Promise<void> {
+  // Supabase ne renvoie pas d'erreur quand RLS bloque un delete : il faut
+  // vérifier qu'une ligne a bien été supprimée (select() renvoie les lignes affectées).
+  const { data, error } = await supabase.from('reports').delete().eq('id', reportId).select('id')
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error("Suppression refusée — tu n'as peut-être pas le droit de supprimer ce signalement.")
+  }
+}

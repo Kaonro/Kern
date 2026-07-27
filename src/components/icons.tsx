@@ -247,6 +247,19 @@ export function IconEdit(props: IconProps) {
   )
 }
 
+/** Corbeille (supprimer). */
+export function IconTrash(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M5 7h14" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M7 7l1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </Base>
+  )
+}
+
 /** Coche (validation / succès). */
 export function IconCheck(props: IconProps) {
   return (

@@ -13,6 +13,7 @@ import {
   IconLock,
   IconSpinner,
   IconTrail,
+  IconTrash,
   IconUser,
   IconWarningTriangle,
   ReportTypeIcon,
@@ -22,7 +23,7 @@ import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
-import { createReport, fetchReportsForRoute } from '../lib/reportsApi'
+import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
 import {
   REPORT_TYPE_LABELS,
   TECHNICITE_LABELS,
@@ -62,6 +63,7 @@ export function RouteDetailPage() {
   const [newReportType, setNewReportType] = useState<ReportType>('autre')
   const [newReportDescription, setNewReportDescription] = useState('')
   const [submittingReport, setSubmittingReport] = useState(false)
+  const [deletingReportId, setDeletingReportId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -147,6 +149,20 @@ export function RouteDetailPage() {
       setError(toFriendlyError(err))
     } finally {
       setSubmittingReport(false)
+    }
+  }
+
+  async function handleDeleteReport(reportId: string) {
+    if (!route) return
+    if (!window.confirm('Supprimer ce signalement ?')) return
+    setDeletingReportId(reportId)
+    try {
+      await deleteReport(reportId)
+      setReports((prev) => prev.filter((r) => r.id !== reportId))
+    } catch (err) {
+      setError(toFriendlyError(err))
+    } finally {
+      setDeletingReportId(null)
     }
   }
 
@@ -336,7 +352,20 @@ export function RouteDetailPage() {
                 <strong>
                   <ReportTypeIcon type={report.type} /> {REPORT_TYPE_LABELS[report.type]}
                 </strong>
-                <time>{new Date(report.created_at).toLocaleDateString('fr-FR')}</time>
+                <div className="report-item-meta">
+                  <time>{new Date(report.created_at).toLocaleDateString('fr-FR')}</time>
+                  {session?.user.id === report.user_id && (
+                    <button
+                      type="button"
+                      className="link-button report-delete-btn"
+                      onClick={() => handleDeleteReport(report.id)}
+                      disabled={deletingReportId === report.id}
+                      aria-label="Supprimer ce signalement"
+                    >
+                      {deletingReportId === report.id ? <IconSpinner /> : <IconTrash />}
+                    </button>
+                  )}
+                </div>
               </div>
               {report.description && <p>{report.description}</p>}
             </li>
