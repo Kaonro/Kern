@@ -53,7 +53,7 @@ export function RouteDetailPage() {
   const [saisonnalite, setSaisonnalite] = useState('')
   const [savingSaisonnalite, setSavingSaisonnalite] = useState(false)
   const [saisonnaliteSaved, setSaisonnaliteSaved] = useState(false)
-  const saisonnaliteSavedTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const saisonnaliteSavedTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const [newReportType, setNewReportType] = useState<ReportType>('autre')
   const [newReportDescription, setNewReportDescription] = useState('')
