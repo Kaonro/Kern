@@ -1,15 +1,27 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { RouteMap } from '../components/RouteMap'
-import { IconCheck, IconCompass, IconAlert, IconDroplet, IconMap, IconSpinner, IconWarningTriangle } from '../components/icons'
+import {
+  IconCheck,
+  IconCompass,
+  IconAlert,
+  IconDroplet,
+  IconMap,
+  IconSpinner,
+  IconWarningTriangle,
+} from '../components/icons'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
+import { fetchAllVotes } from '../lib/votesApi'
 import { fetchWaterPoints, type WaterPoint } from '../lib/refugesInfo'
-import type { Report, ReportType, RouteRecord } from '../types'
+import type { Report, ReportType, RouteRecord, RouteVote } from '../types'
+
+/** Nombre de parcours mis en avant sur la carte d'accueil simplifiée. */
+const FEATURED_ROUTES_COUNT = 8
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
@@ -29,6 +41,7 @@ export function MapPage() {
 
   const [routes, setRoutes] = useState<RouteRecord[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [votes, setVotes] = useState<RouteVote[]>([])
   const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
   const [showWaterPoints, setShowWaterPoints] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -54,12 +67,26 @@ export function MapPage() {
       .catch(() => {
         // Pas bloquant : la carte reste utilisable sans les marqueurs de signalement.
       })
+    fetchAllVotes()
+      .then(setVotes)
+      .catch(() => {
+        // Pas bloquant : sans les votes, la mise en avant retombe sur l'ordre par défaut.
+      })
     fetchWaterPoints()
       .then(setWaterPoints)
       .catch(() => {
         // Pas bloquant : refuges.info est une source externe optionnelle.
       })
   }, [])
+
+  // Carte d'accueil simplifiée façon Komoot : seulement les parcours les plus actifs
+  // dans la communauté (votes + signalements cumulés), pas tous les tracés en heatmap.
+  const featuredRoutes = useMemo(() => {
+    const score = new Map<string, number>()
+    for (const vote of votes) score.set(vote.route_id, (score.get(vote.route_id) ?? 0) + 1)
+    for (const report of reports) score.set(report.route_id, (score.get(report.route_id) ?? 0) + 1)
+    return [...routes].sort((a, b) => (score.get(b.id) ?? 0) - (score.get(a.id) ?? 0)).slice(0, FEATURED_ROUTES_COUNT)
+  }, [routes, votes, reports])
 
   function resetPlacement() {
     setStep('idle')
@@ -170,7 +197,7 @@ export function MapPage() {
       )}
 
       <RouteMap
-        routes={routes}
+        routes={featuredRoutes}
         reports={reports}
         waterPoints={showWaterPoints ? waterPoints : []}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
@@ -178,6 +205,12 @@ export function MapPage() {
         onPick={handleMapPick}
         pickedPosition={pickedPosition}
       />
+
+      {routes.length > FEATURED_ROUTES_COUNT && step === 'idle' && (
+        <Link to="/carte-chaleur" className="heatmap-link">
+          <IconMap /> Voir tous les parcours
+        </Link>
+      )}
 
       {waterPoints.length > 0 && (
         <button

@@ -7,6 +7,12 @@ export async function fetchVotesForRoute(routeId: string): Promise<RouteVote[]> 
   return data as RouteVote[]
 }
 
+export async function fetchAllVotes(): Promise<RouteVote[]> {
+  const { data, error } = await supabase.from('route_votes').select('*')
+  if (error) throw error
+  return data as RouteVote[]
+}
+
 export async function castVote(routeId: string, userId: string, technicite: Technicite): Promise<void> {
   const { error } = await supabase
     .from('route_votes')

@@ -50,6 +50,10 @@ interface RouteMapProps {
   pickMode?: boolean
   onPick?: (lat: number, lng: number) => void
   pickedPosition?: { lat: number; lng: number } | null
+  /** Effet heatmap (tracés semi-transparents qui s'assombrissent en se superposant) —
+   * réservé à la vue densité dédiée à la génération de parcours. La carte d'accueil
+   * utilise des tracés pleins, plus lisibles avec peu de parcours affichés. */
+  heatmap?: boolean
 }
 
 function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
@@ -92,6 +96,7 @@ export function RouteMap({
   pickMode = false,
   onPick,
   pickedPosition,
+  heatmap = false,
 }: RouteMapProps) {
   const routesById = useMemo(() => new Map(routes.map((route) => [route.id, route])), [routes])
 
@@ -116,8 +121,9 @@ export function RouteMap({
         <Polyline
           key={route.id}
           positions={route.gpx_track.map((p) => [p.lat, p.lng])}
-          // Opacité partielle : les tracés qui se superposent s'assombrissent naturellement (effet heatmap).
-          pathOptions={{ color: '#2f6f4f', weight: 4, opacity: 0.5 }}
+          // En mode heatmap, l'opacité partielle fait que les tracés qui se superposent
+          // s'assombrissent naturellement. En mode simple, un trait plein est plus lisible.
+          pathOptions={{ color: '#2f6f4f', weight: heatmap ? 4 : 5, opacity: heatmap ? 0.5 : 0.9 }}
           eventHandlers={{
             click: (e) => {
               if (pickMode) {
