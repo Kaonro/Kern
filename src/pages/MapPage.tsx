@@ -8,6 +8,7 @@ import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
+import { fetchWaterPoints, type WaterPoint } from '../lib/refugesInfo'
 import type { Report, ReportType, RouteRecord } from '../types'
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
@@ -28,6 +29,7 @@ export function MapPage() {
 
   const [routes, setRoutes] = useState<RouteRecord[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -50,6 +52,11 @@ export function MapPage() {
       .then(setReports)
       .catch(() => {
         // Pas bloquant : la carte reste utilisable sans les marqueurs de signalement.
+      })
+    fetchWaterPoints()
+      .then(setWaterPoints)
+      .catch(() => {
+        // Pas bloquant : refuges.info est une source externe optionnelle.
       })
   }, [])
 
@@ -164,6 +171,7 @@ export function MapPage() {
       <RouteMap
         routes={routes}
         reports={reports}
+        waterPoints={waterPoints}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}

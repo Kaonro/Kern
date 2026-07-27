@@ -4,6 +4,7 @@ import {
   MapContainer,
   Marker,
   Polyline,
+  Popup,
   TileLayer,
   Tooltip,
   ZoomControl,
@@ -18,6 +19,7 @@ import 'leaflet/dist/leaflet.css'
 import { REPORT_TYPE_COLORS } from './icons'
 import { extractTrackSegment, nearestTrackIndex } from '../lib/geo'
 import { relevanceOpacity } from '../lib/reportRelevance'
+import type { WaterPoint } from '../lib/refugesInfo'
 import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
 
 // Leaflet + bundlers : les chemins d'icônes par défaut ne se résolvent pas automatiquement.
@@ -28,11 +30,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 
+// Goutte d'eau maison (cohérente avec le bleu "eau à sec" des signalements), pour les points
+// d'eau importés de refuges.info — volontairement distincte des marqueurs de signalement.
+const waterPointIcon = L.divIcon({
+  className: 'water-point-icon',
+  html: `<svg viewBox="0 0 24 24" width="22" height="22" fill="#eaf3fa" stroke="${REPORT_TYPE_COLORS.eau_a_sec}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>`,
+  iconSize: [22, 22],
+  iconAnchor: [11, 20],
+  popupAnchor: [0, -18],
+})
+
 const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 
 interface RouteMapProps {
   routes: RouteRecord[]
   reports?: Report[]
+  waterPoints?: WaterPoint[]
   onSelectRoute?: (routeId: string) => void
   pickMode?: boolean
   onPick?: (lat: number, lng: number) => void
@@ -74,6 +87,7 @@ function PickModeHandler({ active, onPick }: { active: boolean; onPick?: (lat: n
 export function RouteMap({
   routes,
   reports = [],
+  waterPoints = [],
   onSelectRoute,
   pickMode = false,
   onPick,
@@ -92,7 +106,7 @@ export function RouteMap({
   return (
     <MapContainer center={CHAMBERY_CENTER} zoom={12} zoomControl={false} style={{ height: '100%', width: '100%' }}>
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Points d&#39;eau : <a href="https://www.refuges.info">refuges.info</a> (CC BY-SA)'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ZoomControl position="bottomleft" />
@@ -168,6 +182,19 @@ export function RouteMap({
           </Fragment>
         )
       })}
+      {waterPoints.map((point) => (
+        <Marker key={`water-${point.id}`} position={[point.lat, point.lng]} icon={waterPointIcon}>
+          <Popup>
+            <strong>{point.nom}</strong>
+            {point.etat && <div>{point.etat}</div>}
+            <div>
+              <a href={point.lien} target="_blank" rel="noreferrer">
+                Voir sur refuges.info
+              </a>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
       {pickedPosition && <Marker position={[pickedPosition.lat, pickedPosition.lng]} />}
     </MapContainer>
   )
