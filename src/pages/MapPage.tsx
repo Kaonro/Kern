@@ -7,8 +7,8 @@ import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
 import { fetchRoutes } from '../lib/routesApi'
-import { createReport } from '../lib/reportsApi'
-import type { ReportType, RouteRecord } from '../types'
+import { createReport, fetchAllReports } from '../lib/reportsApi'
+import type { Report, ReportType, RouteRecord } from '../types'
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
@@ -27,6 +27,7 @@ export function MapPage() {
   const { session } = useAuth()
 
   const [routes, setRoutes] = useState<RouteRecord[]>([])
+  const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -45,6 +46,11 @@ export function MapPage() {
       .then(setRoutes)
       .catch((err) => setError(toFriendlyError(err)))
       .finally(() => setLoading(false))
+    fetchAllReports()
+      .then(setReports)
+      .catch(() => {
+        // Pas bloquant : la carte reste utilisable sans les marqueurs de signalement.
+      })
   }, [])
 
   function resetPlacement() {
@@ -114,6 +120,7 @@ export function MapPage() {
         longitude: pickedPosition.lng,
       })
       setSuccessMessage(`Signalement ajouté sur "${nearestRoute.nom}"`)
+      setReports(await fetchAllReports())
       resetPlacement()
     } catch (err) {
       setPlaceError(toFriendlyError(err))
@@ -156,6 +163,7 @@ export function MapPage() {
 
       <RouteMap
         routes={routes}
+        reports={reports}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}

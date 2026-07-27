@@ -1,11 +1,23 @@
 import { useEffect } from 'react'
-import { MapContainer, Marker, Polyline, TileLayer, Tooltip, ZoomControl, useMap, useMapEvents } from 'react-leaflet'
+import {
+  CircleMarker,
+  MapContainer,
+  Marker,
+  Polyline,
+  TileLayer,
+  Tooltip,
+  ZoomControl,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet/dist/leaflet.css'
-import type { RouteRecord } from '../types'
+import { REPORT_TYPE_COLORS } from './icons'
+import { relevanceOpacity } from '../lib/reportRelevance'
+import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
 
 // Leaflet + bundlers : les chemins d'icônes par défaut ne se résolvent pas automatiquement.
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl
@@ -19,6 +31,7 @@ const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 
 interface RouteMapProps {
   routes: RouteRecord[]
+  reports?: Report[]
   onSelectRoute?: (routeId: string) => void
   pickMode?: boolean
   onPick?: (lat: number, lng: number) => void
@@ -57,7 +70,14 @@ function PickModeHandler({ active, onPick }: { active: boolean; onPick?: (lat: n
   return null
 }
 
-export function RouteMap({ routes, onSelectRoute, pickMode = false, onPick, pickedPosition }: RouteMapProps) {
+export function RouteMap({
+  routes,
+  reports = [],
+  onSelectRoute,
+  pickMode = false,
+  onPick,
+  pickedPosition,
+}: RouteMapProps) {
   return (
     <MapContainer center={CHAMBERY_CENTER} zoom={12} zoomControl={false} style={{ height: '100%', width: '100%' }}>
       <TileLayer
@@ -85,6 +105,28 @@ export function RouteMap({ routes, onSelectRoute, pickMode = false, onPick, pick
         >
           <Tooltip sticky>{route.nom}</Tooltip>
         </Polyline>
+      ))}
+      {reports.map((report) => (
+        <CircleMarker
+          key={report.id}
+          center={[report.latitude, report.longitude]}
+          radius={7}
+          pathOptions={{
+            color: '#fff',
+            weight: 2,
+            fillColor: REPORT_TYPE_COLORS[report.type],
+            fillOpacity: relevanceOpacity(report.created_at),
+            opacity: 1,
+          }}
+          eventHandlers={{
+            click: () => onSelectRoute?.(report.route_id),
+          }}
+        >
+          <Tooltip>
+            {REPORT_TYPE_LABELS[report.type]}
+            {report.description ? ` — ${report.description}` : ''}
+          </Tooltip>
+        </CircleMarker>
       ))}
       {pickedPosition && <Marker position={[pickedPosition.lat, pickedPosition.lng]} />}
     </MapContainer>

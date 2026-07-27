@@ -21,6 +21,7 @@ import {
 } from '../components/icons'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
+import { relevanceOpacity } from '../lib/reportRelevance'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
 import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
@@ -33,13 +34,6 @@ import {
   type RouteWithContributor,
   type Technicite,
 } from '../types'
-
-const REPORT_MAX_AGE_DAYS = 90
-
-function relevanceOpacity(createdAt: string): number {
-  const ageDays = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
-  return Math.max(0.35, 1 - ageDays / REPORT_MAX_AGE_DAYS)
-}
 
 export function RouteDetailPage() {
   const { id } = useParams<{ id: string }>()

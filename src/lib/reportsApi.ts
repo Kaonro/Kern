@@ -1,6 +1,12 @@
 import { supabase } from './supabaseClient'
 import type { Report, ReportType } from '../types'
 
+export async function fetchAllReports(): Promise<Report[]> {
+  const { data, error } = await supabase.from('reports').select('*').order('created_at', { ascending: false })
+  if (error) throw error
+  return data as Report[]
+}
+
 export async function fetchReportsForRoute(routeId: string): Promise<Report[]> {
   const { data, error } = await supabase
     .from('reports')
