@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { MapContainer, Marker, Polyline, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Polyline, TileLayer, Tooltip, ZoomControl, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -59,11 +59,12 @@ function PickModeHandler({ active, onPick }: { active: boolean; onPick?: (lat: n
 
 export function RouteMap({ routes, onSelectRoute, pickMode = false, onPick, pickedPosition }: RouteMapProps) {
   return (
-    <MapContainer center={CHAMBERY_CENTER} zoom={12} style={{ height: '100%', width: '100%' }}>
+    <MapContainer center={CHAMBERY_CENTER} zoom={12} zoomControl={false} style={{ height: '100%', width: '100%' }}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      <ZoomControl position="bottomleft" />
       <FitToRoutes routes={routes} />
       <PickModeHandler active={pickMode} onPick={onPick} />
       {routes.map((route) => (

@@ -1,22 +1,18 @@
-.bottom-nav {
+.mobile-nav {
   display: none;
 }
 
 @media (max-width: 640px) {
-  .bottom-nav {
+  /* Deuxième rangée de nav sous le bandeau principal (pas de bottom nav :
+     laisse le bas de l'écran libre pour le zoom de la carte et le FAB signalement). */
+  .mobile-nav {
     display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
     background: var(--color-surface);
-    border-top: 1px solid var(--color-border);
-    box-shadow: 0 -2px 12px rgba(31, 42, 36, 0.1);
-    z-index: 600;
-    padding-bottom: env(safe-area-inset-bottom);
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: 0 2px 12px rgba(31, 42, 36, 0.1);
   }
 
-  .bottom-nav a {
+  .mobile-nav a {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -29,12 +25,12 @@
     font-weight: 700;
   }
 
-  .bn-icon {
+  .mn-icon {
     font-size: 1.3rem;
     line-height: 1;
   }
 
-  .bottom-nav a.active {
+  .mobile-nav a.active {
     color: var(--color-primary);
   }
 }

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ElevationChart } from '../components/ElevationChart'
 import {
   IconArrowLeft,
   IconCalendar,
+  IconCheck,
   IconCompass,
   IconEdit,
   IconElevation,
@@ -54,6 +55,8 @@ export function RouteDetailPage() {
 
   const [saisonnalite, setSaisonnalite] = useState('')
   const [savingSaisonnalite, setSavingSaisonnalite] = useState(false)
+  const [saisonnaliteSaved, setSaisonnaliteSaved] = useState(false)
+  const saisonnaliteSavedTimeout = useRef<ReturnType<typeof setTimeout>>()
 
   const [newReportType, setNewReportType] = useState<ReportType>('autre')
   const [newReportDescription, setNewReportDescription] = useState('')
@@ -114,6 +117,9 @@ export function RouteDetailPage() {
     setSavingSaisonnalite(true)
     try {
       await updateSaisonnalite(id, saisonnalite)
+      setSaisonnaliteSaved(true)
+      clearTimeout(saisonnaliteSavedTimeout.current)
+      saisonnaliteSavedTimeout.current = setTimeout(() => setSaisonnaliteSaved(false), 3000)
     } catch (err) {
       setError(toFriendlyError(err))
     } finally {
@@ -184,7 +190,13 @@ export function RouteDetailPage() {
           {editingNom ? (
             <div className="nom-edit">
               <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} />
-              <button type="button" className="btn btn-primary" onClick={handleSaveNom} disabled={savingNom}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSaveNom}
+                disabled={savingNom}
+                aria-label="Enregistrer le nom"
+              >
                 {savingNom ? <IconSpinner /> : <IconEdit />}
               </button>
               <button type="button" className="link-button" onClick={() => setEditingNom(false)}>
@@ -195,7 +207,12 @@ export function RouteDetailPage() {
             <h1>
               {route.nom}{' '}
               {session && (
-                <button type="button" className="link-button edit-nom-btn" onClick={() => setEditingNom(true)}>
+                <button
+                  type="button"
+                  className="link-button edit-nom-btn"
+                  onClick={() => setEditingNom(true)}
+                  aria-label="Modifier le nom du parcours"
+                >
                   <IconEdit />
                 </button>
               )}
@@ -247,7 +264,7 @@ export function RouteDetailPage() {
         </div>
         {!session && (
           <p className="notice">
-            <IconLock /> Connecte-toi pour voter.
+            <IconLock /> <Link to="/auth">Connecte-toi</Link> pour voter.
           </p>
         )}
       </div>
@@ -264,20 +281,27 @@ export function RouteDetailPage() {
           disabled={!session}
         />
         {session && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleSaveSaisonnalite}
-            disabled={savingSaisonnalite}
-          >
-            {savingSaisonnalite ? (
-              <>
-                <IconSpinner /> Enregistrement...
-              </>
-            ) : (
-              'Enregistrer'
+          <>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSaveSaisonnalite}
+              disabled={savingSaisonnalite}
+            >
+              {savingSaisonnalite ? (
+                <>
+                  <IconSpinner /> Enregistrement...
+                </>
+              ) : (
+                'Enregistrer'
+              )}
+            </button>
+            {saisonnaliteSaved && (
+              <p className="notice">
+                <IconCheck /> Enregistré.
+              </p>
             )}
-          </button>
+          </>
         )}
       </div>
 
@@ -306,7 +330,7 @@ export function RouteDetailPage() {
           </form>
         ) : (
           <p className="notice">
-            <IconLock /> Connecte-toi pour ajouter un signalement.
+            <IconLock /> <Link to="/auth">Connecte-toi</Link> pour ajouter un signalement.
           </p>
         )}
 

@@ -44,6 +44,21 @@ export function toFriendlyError(err: unknown): string {
   if (lower.includes('jwt') || lower.includes('not authenticated')) {
     return 'Ta session a expiré — reconnecte-toi.'
   }
+  if (lower.includes('invalid login credentials')) {
+    return 'Email ou mot de passe incorrect.'
+  }
+  if (lower.includes('email not confirmed')) {
+    return "Ton adresse email n'est pas encore confirmée — vérifie ta boîte mail."
+  }
+  if (lower.includes('user already registered')) {
+    return 'Un compte existe déjà avec cet email.'
+  }
+  if (lower.includes('unable to validate email address')) {
+    return 'Adresse email invalide.'
+  }
+  if (lower.includes('password should be at least')) {
+    return 'Le mot de passe doit contenir au moins 6 caractères.'
+  }
 
   return raw
 }

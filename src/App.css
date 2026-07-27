@@ -82,7 +82,7 @@
 .map-fab {
   position: absolute;
   right: 1.25rem;
-  bottom: 1.25rem;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -156,10 +156,10 @@
   background: var(--color-bg);
 }
 
-@media (max-width: 640px) {
-  .map-fab {
-    bottom: calc(4.5rem + env(safe-area-inset-bottom));
-  }
+/* Le zoom de la carte (bottom-left) a besoin de la même marge que le FAB pour
+   ne pas passer sous la barre de geste des téléphones sans bord physique. */
+.leaflet-bottom.leaflet-left {
+  margin-bottom: env(safe-area-inset-bottom);
 }
 
 .page-padding {
@@ -498,6 +498,11 @@ textarea {
   font-size: 0.9rem;
 }
 
+.notice a {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
 /* Auth */
 .auth-page {
   display: flex;
@@ -597,11 +602,4 @@ textarea {
   border-radius: var(--radius-sm);
   background: var(--color-bg);
   font-weight: 400;
-}
-
-/* Laisse la place à la bottom nav mobile */
-@media (max-width: 640px) {
-  .page-padding {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
 }

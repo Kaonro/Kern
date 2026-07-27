@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { IconArrowRight, IconCheck, IconKey, IconSpinner, IconWarningTriangle } from '../components/icons'
 import { toFriendlyError } from '../lib/errors'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
 export function AuthPage() {
+  const navigate = useNavigate()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,7 +21,7 @@ export function AuthPage() {
     setError('')
     setSuccess('')
 
-    const { error: authError } =
+    const { data, error: authError } =
       mode === 'login'
         ? await supabase.auth.signInWithPassword({ email, password })
         : await supabase.auth.signUp({ email, password, options: { data: { pseudo, ville } } })
@@ -27,8 +29,11 @@ export function AuthPage() {
     setLoading(false)
     if (authError) {
       setError(toFriendlyError(authError))
+    } else if (data.session) {
+      // Session déjà active (login, ou signup avec confirmation email désactivée) : direction la carte.
+      navigate('/')
     } else {
-      setSuccess(mode === 'login' ? 'Connecté.' : 'Compte créé, vérifie ta boîte mail.')
+      setSuccess('Compte créé, vérifie ta boîte mail.')
     }
   }
 

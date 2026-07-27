@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
 import { NavBar } from './components/NavBar'
-import { BottomNav } from './components/BottomNav'
+import { MobileNav } from './components/MobileNav'
 import { MapPage } from './pages/MapPage'
 import { UploadGpxPage } from './pages/UploadGpxPage'
 import { RouteDetailPage } from './pages/RouteDetailPage'
@@ -15,6 +15,7 @@ function App() {
       <BrowserRouter>
         <div className="app-shell">
           <NavBar />
+          <MobileNav />
           <main className="app-main">
             <Routes>
               <Route path="/" element={<MapPage />} />
@@ -24,7 +25,6 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>
-          <BottomNav />
         </div>
       </BrowserRouter>
     </AuthProvider>
