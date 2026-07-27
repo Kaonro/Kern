@@ -20,7 +20,7 @@ function App() {
           <main className="app-main">
             <Routes>
               <Route path="/" element={<MapPage />} />
-              <Route path="/carte-chaleur" element={<HeatmapPage />} />
+              <Route path="/generation" element={<HeatmapPage />} />
               <Route path="/upload" element={<UploadGpxPage />} />
               <Route path="/routes/:id" element={<RouteDetailPage />} />
               <Route path="/auth" element={<AuthPage />} />

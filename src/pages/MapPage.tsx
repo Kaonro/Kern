@@ -207,7 +207,7 @@ export function MapPage() {
       />
 
       {routes.length > FEATURED_ROUTES_COUNT && step === 'idle' && (
-        <Link to="/carte-chaleur" className="heatmap-link">
+        <Link to="/generation" className="heatmap-link">
           <IconMap /> Voir tous les parcours
         </Link>
       )}

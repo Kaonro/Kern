@@ -613,16 +613,30 @@ textarea {
   text-decoration: none;
 }
 
-.heatmap-back-link {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  z-index: 1000;
+.page-generation {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.generation-header {
+  padding: 1rem 1.25rem 0.85rem;
   background: var(--color-surface);
-  padding: 0.5rem 0.9rem;
-  border-radius: 999px;
-  box-shadow: var(--shadow-md);
-  margin-bottom: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.generation-header .back-link {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.generation-header h1 {
+  margin-bottom: 0.35rem;
+}
+
+.generation-map {
+  flex: 1;
+  min-height: 0;
 }
 
 .back-link:hover {

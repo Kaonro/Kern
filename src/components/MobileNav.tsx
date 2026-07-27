@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
-import { IconKey, IconMap, IconUpload, IconUser } from './icons'
+import { IconKey, IconLayers, IconMap, IconUpload, IconUser } from './icons'
 import './MobileNav.css'
 
 export function MobileNav() {
@@ -15,6 +15,10 @@ export function MobileNav() {
       <NavLink to="/upload">
         <IconUpload className="mn-icon" />
         <span className="mn-label">Ajouter</span>
+      </NavLink>
+      <NavLink to="/generation">
+        <IconLayers className="mn-icon" />
+        <span className="mn-label">Générer</span>
       </NavLink>
       {session ? (
         <NavLink to="/profile">

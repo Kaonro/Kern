@@ -42,6 +42,17 @@ const waterPointIcon = L.divIcon({
 
 const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 
+// Palette pour différencier les parcours à l'œil sur la carte simple (accueil).
+// En mode heatmap, tous les tracés restent d'une seule couleur pour préserver l'effet
+// de superposition (plus un chemin est emprunté, plus il s'assombrit).
+const ROUTE_COLORS = ['#2f6f4f', '#1d6fa5', '#b5651d', '#7a4fa3', '#a13d63', '#4a7c59', '#d4a017', '#3c5a99']
+
+function colorForRoute(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  return ROUTE_COLORS[hash % ROUTE_COLORS.length]
+}
+
 interface RouteMapProps {
   routes: RouteRecord[]
   reports?: Report[]
@@ -122,8 +133,13 @@ export function RouteMap({
           key={route.id}
           positions={route.gpx_track.map((p) => [p.lat, p.lng])}
           // En mode heatmap, l'opacité partielle fait que les tracés qui se superposent
-          // s'assombrissent naturellement. En mode simple, un trait plein est plus lisible.
-          pathOptions={{ color: '#2f6f4f', weight: heatmap ? 4 : 5, opacity: heatmap ? 0.5 : 0.9 }}
+          // s'assombrissent naturellement. En mode simple, un trait plein coloré par
+          // parcours est plus lisible pour les différencier.
+          pathOptions={{
+            color: heatmap ? '#2f6f4f' : colorForRoute(route.id),
+            weight: heatmap ? 4 : 5,
+            opacity: heatmap ? 0.5 : 0.9,
+          }}
           eventHandlers={{
             click: (e) => {
               if (pickMode) {

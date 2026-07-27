@@ -260,6 +260,16 @@ export function IconPin(props: IconProps) {
   )
 }
 
+/** Calques empilés (génération de parcours / carte de densité). */
+export function IconLayers(props: IconProps) {
+  return (
+    <Base {...props}>
+      <polygon points="12,4 21,9 12,14 3,9" />
+      <polyline points="3,13 12,18 21,13" />
+    </Base>
+  )
+}
+
 /** Crayon (édition). */
 export function IconEdit(props: IconProps) {
   return (

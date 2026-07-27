@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabaseClient'
-import { IconKey, IconMap, IconMountain, IconUpload, IconUser } from './icons'
+import { IconKey, IconLayers, IconMap, IconMountain, IconUpload, IconUser } from './icons'
 import './NavBar.css'
 
 export function NavBar() {
@@ -18,6 +18,9 @@ export function NavBar() {
         </NavLink>
         <NavLink to="/upload">
           <IconUpload /> Ajouter un GPX
+        </NavLink>
+        <NavLink to="/generation">
+          <IconLayers /> Génération
         </NavLink>
         {session ? (
           <NavLink to="/profile">
