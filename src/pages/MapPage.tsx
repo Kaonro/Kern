@@ -12,6 +12,7 @@ import {
   IconWarningTriangle,
 } from '../components/icons'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
+import { LayersMenu } from '../components/LayersMenu'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
@@ -45,9 +46,9 @@ export function MapPage() {
   const [reports, setReports] = useState<Report[]>([])
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
-  const [showWaterPoints, setShowWaterPoints] = useState(true)
+  const [showWaterPoints, setShowWaterPoints] = useState(false)
   const [pois, setPois] = useState<Poi[]>([])
-  const [showPois, setShowPois] = useState(true)
+  const [showPois, setShowPois] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -222,29 +223,32 @@ export function MapPage() {
         </Link>
       )}
 
-      {waterPoints.length > 0 && (
-        <button
-          type="button"
-          className={showWaterPoints ? 'water-toggle-btn active' : 'water-toggle-btn'}
-          onClick={() => setShowWaterPoints((v) => !v)}
-          aria-pressed={showWaterPoints}
-          aria-label={showWaterPoints ? "Masquer les points d'eau" : "Afficher les points d'eau"}
-        >
-          <IconDroplet />
-        </button>
-      )}
-
-      {pois.length > 0 && (
-        <button
-          type="button"
-          className={showPois ? 'poi-toggle-btn active' : 'poi-toggle-btn'}
-          onClick={() => setShowPois((v) => !v)}
-          aria-pressed={showPois}
-          aria-label={showPois ? "Masquer sommets, cols et points de vue" : "Afficher sommets, cols et points de vue"}
-        >
-          <IconMountain />
-        </button>
-      )}
+      <LayersMenu
+        layers={[
+          ...(waterPoints.length > 0
+            ? [
+                {
+                  key: 'water',
+                  label: "Points d'eau",
+                  icon: <IconDroplet />,
+                  active: showWaterPoints,
+                  onToggle: () => setShowWaterPoints((v) => !v),
+                },
+              ]
+            : []),
+          ...(pois.length > 0
+            ? [
+                {
+                  key: 'pois',
+                  label: 'Sommets, cols, points de vue',
+                  icon: <IconMountain />,
+                  active: showPois,
+                  onToggle: () => setShowPois((v) => !v),
+                },
+              ]
+            : []),
+        ]}
+      />
 
       {step === 'idle' && (
         <button type="button" className="map-fab" onClick={handleOpenReportMenu} aria-label="Ajouter un signalement">
