@@ -320,6 +320,26 @@
   stroke-dasharray: 3 3;
 }
 
+.elevation-distance-wrap {
+  display: flex;
+  margin-top: 0.2rem;
+}
+
+.elevation-axis-spacer {
+  width: 2.8rem;
+  flex-shrink: 0;
+}
+
+.elevation-distance-axis {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

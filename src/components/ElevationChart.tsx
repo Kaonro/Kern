@@ -40,32 +40,44 @@ export function ElevationChart({ points }: ElevationChartProps) {
   const linePath = `M${coords.join(' L')}`
   const areaPath = `${linePath} L${WIDTH},${PADDING_TOP + chartHeight} L0,${PADDING_TOP + chartHeight} Z`
   const levels = [max, mid, min]
+  const totalDistanceKm = totalDistance / 1000
+  const distanceTicks = [0, 0.25, 0.5, 0.75, 1].map((f) => totalDistanceKm * f)
 
   return (
-    <div className="elevation-chart-wrap">
-      {/* Libellés en HTML, pas en <text> SVG : le SVG est étiré indépendamment en x/y
-          (preserveAspectRatio="none") pour remplir la largeur, ce qui déformait les
-          chiffres et les rendait flous/tassés. */}
-      <div className="elevation-axis">
-        {levels.map((value, i) => (
-          <span key={i} className="elevation-axis-label" style={{ top: `${(yFor(value) / HEIGHT) * 100}%` }}>
-            {Math.round(value)} m
-          </span>
-        ))}
+    <div className="elevation-chart-outer">
+      <div className="elevation-chart-wrap">
+        {/* Libellés en HTML, pas en <text> SVG : le SVG est étiré indépendamment en x/y
+            (preserveAspectRatio="none") pour remplir la largeur, ce qui déformait les
+            chiffres et les rendait flous/tassés. */}
+        <div className="elevation-axis">
+          {levels.map((value, i) => (
+            <span key={i} className="elevation-axis-label" style={{ top: `${(yFor(value) / HEIGHT) * 100}%` }}>
+              {Math.round(value)} m
+            </span>
+          ))}
+        </div>
+        <svg
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          className="elevation-chart"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label={`Profil d'élévation du parcours, de ${Math.round(min)} à ${Math.round(max)} mètres d'altitude`}
+        >
+          {levels.map((value, i) => (
+            <line key={i} x1={0} y1={yFor(value)} x2={WIDTH} y2={yFor(value)} className="elevation-gridline" />
+          ))}
+          <path d={areaPath} className="elevation-area" />
+          <path d={linePath} className="elevation-line" fill="none" />
+        </svg>
       </div>
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        className="elevation-chart"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label={`Profil d'élévation du parcours, de ${Math.round(min)} à ${Math.round(max)} mètres d'altitude`}
-      >
-        {levels.map((value, i) => (
-          <line key={i} x1={0} y1={yFor(value)} x2={WIDTH} y2={yFor(value)} className="elevation-gridline" />
-        ))}
-        <path d={areaPath} className="elevation-area" />
-        <path d={linePath} className="elevation-line" fill="none" />
-      </svg>
+      <div className="elevation-distance-wrap">
+        <span className="elevation-axis-spacer" />
+        <div className="elevation-distance-axis">
+          {distanceTicks.map((km, i) => (
+            <span key={i}>{km.toFixed(1)} km</span>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
