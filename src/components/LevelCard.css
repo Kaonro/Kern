@@ -1,0 +1,59 @@
+.level-card-header {
+  --level-color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.level-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--level-color) 18%, white);
+  color: var(--level-color);
+  font-size: 1.5rem;
+}
+
+.level-card-index {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.level-card-header h2 {
+  margin: 0.1rem 0 0;
+}
+
+.level-progress-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.level-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.level-stats {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.level-stats strong {
+  color: var(--color-text);
+}

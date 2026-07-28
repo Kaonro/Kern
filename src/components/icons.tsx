@@ -261,6 +261,18 @@ export function IconDogSlash(props: IconProps) {
   )
 }
 
+/** Médaille à ruban (niveau de contribution / fiabilité). */
+export function IconMedal(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="14" r="6" />
+      <path d="M9 8.5 7 3" />
+      <path d="M15 8.5 17 3" />
+      <path d="M9.7 14l1.6 1.6L14.8 12" />
+    </Base>
+  )
+}
+
 /** Repère générique (autre signalement). */
 export function IconPin(props: IconProps) {
   return (

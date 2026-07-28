@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IconCheck, IconLock, IconSpinner, IconUser, IconWarningTriangle } from '../components/icons'
+import { LevelCard } from '../components/LevelCard'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { fetchProfile, updateProfile } from '../lib/profileApi'
+import { fetchActivityStats, type ActivityStats } from '../lib/reputationApi'
 
 export function ProfilePage() {
   const { session } = useAuth()
 
   const [pseudo, setPseudo] = useState('')
   const [ville, setVille] = useState('')
+  const [stats, setStats] = useState<ActivityStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -24,6 +27,7 @@ export function ProfilePage() {
       })
       .catch((err) => setError(toFriendlyError(err)))
       .finally(() => setLoading(false))
+    fetchActivityStats(session.user.id).then(setStats)
   }, [session])
 
   async function handleSave(e: React.FormEvent) {
@@ -72,6 +76,9 @@ export function ProfilePage() {
       <h1>
         <IconUser /> Mon profil
       </h1>
+
+      {stats && <LevelCard stats={stats} />}
+
       <div className="card">
         <form onSubmit={handleSave}>
           <label>

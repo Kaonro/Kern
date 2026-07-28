@@ -1,0 +1,17 @@
+.level-badge {
+  --level-color: var(--color-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--level-color);
+  background: color-mix(in srgb, var(--level-color) 16%, white);
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.level-badge .icon {
+  font-size: 1em;
+}

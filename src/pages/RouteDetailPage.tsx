@@ -4,6 +4,7 @@ import { ElevationChart } from '../components/ElevationChart'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import { RouteMap } from '../components/RouteMap'
 import { DifficultyBar } from '../components/DifficultyBar'
+import { LevelBadge } from '../components/LevelBadge'
 import {
   DIFFICULTE_COLORS,
   IconArrowLeft,
@@ -30,6 +31,7 @@ import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
 import { castDifficultyVote, fetchDifficultyVotesForRoute } from '../lib/difficultyVotesApi'
 import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
+import { fetchActivityStats, type ActivityStats } from '../lib/reputationApi'
 import {
   DIFFICULTE_LABELS,
   DIFFICULTE_ORDER,
@@ -52,6 +54,7 @@ export function RouteDetailPage() {
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [difficultyVotes, setDifficultyVotes] = useState<RouteDifficultyVote[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [contributorStats, setContributorStats] = useState<ActivityStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -90,6 +93,11 @@ export function RouteDetailPage() {
       fetchDifficultyVotesForRoute(id)
         .then(setDifficultyVotes)
         .catch(() => {})
+      if (routeData?.created_by) {
+        fetchActivityStats(routeData.created_by)
+          .then(setContributorStats)
+          .catch(() => {})
+      }
     } catch (err) {
       setError(toFriendlyError(err))
     } finally {
@@ -280,6 +288,7 @@ export function RouteDetailPage() {
           {route.users?.pseudo && (
             <p className="notice contributor">
               <IconUser /> Ajouté par {route.users.pseudo}
+              {contributorStats && <LevelBadge stats={contributorStats} />}
             </p>
           )}
         </div>

@@ -695,6 +695,10 @@ textarea {
 
 .contributor {
   margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* Formulaires génériques dans une carte (ex. profil) */
