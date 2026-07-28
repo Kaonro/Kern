@@ -14,14 +14,16 @@ export interface Level {
 }
 
 /** Échelons façon Waze/Google Local Guides — les noms montent en "fiabilité perçue"
- * pour donner envie de contribuer et pour rassurer les autres sur qui a signalé quoi. */
+ * pour donner envie de contribuer et pour rassurer les autres sur qui a signalé quoi.
+ * Seuils volontairement élevés (surtout en haut de l'échelle) pour que les niveaux
+ * les plus hauts restent rares et donc parlants. */
 export const LEVELS: Level[] = [
-  { index: 1, threshold: 0, name: 'Marcheur du dimanche', color: '#9a9a8f' },
-  { index: 2, threshold: 3, name: 'Trotteur de sentiers', color: '#7a9a5f' },
-  { index: 3, threshold: 10, name: 'Éclaireur', color: '#3fa66a' },
-  { index: 4, threshold: 25, name: 'Guide de confiance', color: '#2f7fb8' },
-  { index: 5, threshold: 50, name: 'Pilier de la communauté', color: '#7c5cbf' },
-  { index: 6, threshold: 100, name: 'Légende du sentier', color: '#d4a017' },
+  { index: 1, threshold: 0, name: 'Coureur du dimanche', color: '#9a9a8f' },
+  { index: 2, threshold: 15, name: 'Trotteur de sentiers', color: '#7a9a5f' },
+  { index: 3, threshold: 40, name: 'Éclaireur', color: '#3fa66a' },
+  { index: 4, threshold: 100, name: 'Guide de confiance', color: '#2f7fb8' },
+  { index: 5, threshold: 220, name: 'Ultra-traileur', color: '#7c5cbf' },
+  { index: 6, threshold: 450, name: 'Légende du sentier', color: '#d4a017' },
 ]
 
 // Une trace GPX ajoutée compte plus qu'un signalement, qui compte plus qu'un simple vote —
