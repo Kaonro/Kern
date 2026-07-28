@@ -3,13 +3,16 @@ import { Link, useParams } from 'react-router-dom'
 import { ElevationChart } from '../components/ElevationChart'
 import { ReportTypeSelect } from '../components/ReportTypeSelect'
 import { RouteMap } from '../components/RouteMap'
+import { DifficultyBar } from '../components/DifficultyBar'
 import {
+  DIFFICULTE_COLORS,
   IconArrowLeft,
   IconCalendar,
   IconCheck,
   IconCompass,
   IconEdit,
   IconElevation,
+  IconGauge,
   IconAlert,
   IconLock,
   IconSpinner,
@@ -25,12 +28,17 @@ import { toFriendlyError } from '../lib/errors'
 import { relevanceOpacity } from '../lib/reportRelevance'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
+import { castDifficultyVote, fetchDifficultyVotesForRoute } from '../lib/difficultyVotesApi'
 import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
 import {
+  DIFFICULTE_LABELS,
+  DIFFICULTE_ORDER,
   REPORT_TYPE_LABELS,
   TECHNICITE_LABELS,
+  type Difficulte,
   type Report,
   type ReportType,
+  type RouteDifficultyVote,
   type RouteVote,
   type RouteWithContributor,
   type Technicite,
@@ -42,6 +50,7 @@ export function RouteDetailPage() {
 
   const [route, setRoute] = useState<RouteWithContributor | null>(null)
   const [votes, setVotes] = useState<RouteVote[]>([])
+  const [difficultyVotes, setDifficultyVotes] = useState<RouteDifficultyVote[]>([])
   const [reports, setReports] = useState<Report[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -76,6 +85,11 @@ export function RouteDetailPage() {
       setSaisonnalite(routeData?.saisonnalite ?? '')
       setVotes(votesData)
       setReports(reportsData)
+      // Séparé du Promise.all ci-dessus : si la migration de la table n'est pas encore
+      // passée en base, ça ne doit pas casser le reste de la fiche parcours.
+      fetchDifficultyVotesForRoute(id)
+        .then(setDifficultyVotes)
+        .catch(() => {})
     } catch (err) {
       setError(toFriendlyError(err))
     } finally {
@@ -92,6 +106,16 @@ export function RouteDetailPage() {
     try {
       await castVote(id, session.user.id, technicite)
       setVotes(await fetchVotesForRoute(id))
+    } catch (err) {
+      setError(toFriendlyError(err))
+    }
+  }
+
+  async function handleDifficultyVote(difficulte: Difficulte) {
+    if (!id || !session) return
+    try {
+      await castDifficultyVote(id, session.user.id, difficulte)
+      setDifficultyVotes(await fetchDifficultyVotesForRoute(id))
     } catch (err) {
       setError(toFriendlyError(err))
     }
@@ -187,6 +211,7 @@ export function RouteDetailPage() {
   }
 
   const majorityTechnicite = computeMajorityTechnicite(votes)
+  const myDifficulteVote = difficultyVotes.find((v) => v.user_id === session?.user.id)?.difficulte
 
   return (
     <div className="page-padding route-detail">
@@ -277,6 +302,32 @@ export function RouteDetailPage() {
             </button>
           ))}
         </div>
+        {!session && (
+          <p className="notice">
+            <IconLock /> <Link to="/auth">Connecte-toi</Link> pour voter.
+          </p>
+        )}
+      </div>
+
+      <div className="card">
+        <h2>
+          <IconGauge /> Difficulté générale
+        </h2>
+        <div className="difficulty-votes">
+          {DIFFICULTE_ORDER.map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={d === myDifficulteVote ? 'active' : ''}
+              style={{ borderColor: DIFFICULTE_COLORS[d], background: d === myDifficulteVote ? DIFFICULTE_COLORS[d] : undefined }}
+              disabled={!session}
+              onClick={() => handleDifficultyVote(d)}
+            >
+              {DIFFICULTE_LABELS[d]}
+            </button>
+          ))}
+        </div>
+        <DifficultyBar votes={difficultyVotes} />
         {!session && (
           <p className="notice">
             <IconLock /> <Link to="/auth">Connecte-toi</Link> pour voter.

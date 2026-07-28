@@ -6,6 +6,20 @@ export const TECHNICITE_LABELS: Record<Technicite, string> = {
   tres_technique: 'Très technique',
 }
 
+/** Niveau de difficulté général, en mots simples — pour les débutants à qui la
+ * "technicité" (terrain) ne parle pas forcément. Distinct de Technicite. */
+export type Difficulte = 'tres_facile' | 'facile' | 'moyen' | 'difficile' | 'tres_difficile'
+
+export const DIFFICULTE_ORDER: Difficulte[] = ['tres_facile', 'facile', 'moyen', 'difficile', 'tres_difficile']
+
+export const DIFFICULTE_LABELS: Record<Difficulte, string> = {
+  tres_facile: 'Très facile',
+  facile: 'Facile',
+  moyen: 'Moyen',
+  difficile: 'Difficile',
+  tres_difficile: 'Très difficile',
+}
+
 export type ReportType =
   | 'eau_a_sec'
   | 'passage_boueux'
@@ -64,6 +78,14 @@ export interface RouteVote {
   route_id: string
   user_id: string
   technicite: Technicite
+}
+
+/** Reflète directement les colonnes de la table public.route_difficulty_votes. */
+export interface RouteDifficultyVote {
+  id: string
+  route_id: string
+  user_id: string
+  difficulte: Difficulte
 }
 
 /** Reflète directement les colonnes de la table public.reports. */

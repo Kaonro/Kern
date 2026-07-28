@@ -1,5 +1,5 @@
 import type { SVGProps } from 'react'
-import type { ReportType, Technicite } from '../types'
+import type { Difficulte, ReportType, Technicite } from '../types'
 
 type IconProps = SVGProps<SVGSVGElement>
 
@@ -114,6 +114,17 @@ export function IconLevel({ level, ...props }: IconProps & { level: 1 | 2 | 3 })
       <rect x="3.5" y="14" width="3.4" height="6.5" rx="1" fill={level >= 1 ? 'currentColor' : 'none'} />
       <rect x="10.3" y="9" width="3.4" height="11.5" rx="1" fill={level >= 2 ? 'currentColor' : 'none'} />
       <rect x="17.1" y="4" width="3.4" height="16.5" rx="1" fill={level >= 3 ? 'currentColor' : 'none'} />
+    </Base>
+  )
+}
+
+/** Jauge en demi-cercle avec aiguille (niveau de difficulté général). */
+export function IconGauge(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M3 17a9 9 0 0 1 18 0" />
+      <line x1="12" y1="17" x2="16.5" y2="10.5" />
+      <circle cx="12" cy="17" r="1.1" fill="currentColor" stroke="none" />
     </Base>
   )
 }
@@ -383,6 +394,15 @@ export function IconChevronDown(props: IconProps) {
 }
 
 /** Couleur d'accent par type de signalement, pour les badges du menu déroulant. */
+/** Dégradé vert → rouge, façon feu tricolore, pour la barre de difficulté générale. */
+export const DIFFICULTE_COLORS: Record<Difficulte, string> = {
+  tres_facile: '#3fa66a',
+  facile: '#8fbc3f',
+  moyen: '#e0a83f',
+  difficile: '#e0793f',
+  tres_difficile: '#c0392b',
+}
+
 export const REPORT_TYPE_COLORS: Record<ReportType, string> = {
   eau_a_sec: '#2f7fb8',
   passage_boueux: '#8a6642',

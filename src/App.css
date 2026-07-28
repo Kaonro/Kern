@@ -384,6 +384,35 @@
   color: #fff;
 }
 
+.difficulty-votes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.difficulty-votes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.difficulty-votes button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.difficulty-votes button.active {
+  color: #fff;
+}
+
 /* Signalements */
 .report-form {
   display: flex;
