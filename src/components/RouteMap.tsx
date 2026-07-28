@@ -91,12 +91,6 @@ const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 // emprunté, plus il s'assombrit).
 const ROUTE_COLORS = ['#5fae82', '#6fa8d9', '#d99a5f', '#a980c4', '#c97a97', '#6fbfae', '#dfc06a', '#7f93c4']
 
-function colorForRoute(id: string): string {
-  let hash = 0
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0
-  return ROUTE_COLORS[hash % ROUTE_COLORS.length]
-}
-
 interface RouteMapProps {
   routes: RouteRecord[]
   reports?: Report[]
@@ -174,15 +168,16 @@ export function RouteMap({
       <ZoomControl position="bottomleft" />
       <FitToRoutes routes={routes} />
       <PickModeHandler active={pickMode} onPick={onPick} />
-      {routes.map((route) => (
+      {routes.map((route, index) => (
         <Polyline
           key={route.id}
           positions={route.gpx_track.map((p) => [p.lat, p.lng])}
           // En mode heatmap, l'opacité partielle fait que les tracés qui se superposent
           // s'assombrissent naturellement. En mode simple, un trait plein coloré par
-          // parcours est plus lisible pour les différencier.
+          // position dans la liste (pas par hachage de l'id, qui donnait des collisions
+          // de couleur quasi garanties avec seulement 8 teintes pour 8 parcours affichés).
           pathOptions={{
-            color: heatmap ? '#2f6f4f' : colorForRoute(route.id),
+            color: heatmap ? '#2f6f4f' : ROUTE_COLORS[index % ROUTE_COLORS.length],
             weight: heatmap ? 4 : 5,
             opacity: heatmap ? 0.5 : 0.9,
           }}
