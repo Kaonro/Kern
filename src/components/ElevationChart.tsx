@@ -7,9 +7,8 @@ interface ElevationChartProps {
 
 const WIDTH = 300
 const HEIGHT = 120
-const PADDING_LEFT = 40
-const PADDING_TOP = 12
-const PADDING_BOTTOM = 8
+const PADDING_TOP = 6
+const PADDING_BOTTOM = 4
 
 export function ElevationChart({ points }: ElevationChartProps) {
   const withEle = points.filter((p): p is TrackPoint & { ele: number } => p.ele !== undefined)
@@ -28,40 +27,45 @@ export function ElevationChart({ points }: ElevationChartProps) {
   const min = Math.min(...elevations)
   const max = Math.max(...elevations)
   const range = max - min || 1
+  const mid = (min + max) / 2
 
-  const chartWidth = WIDTH - PADDING_LEFT
   const chartHeight = HEIGHT - PADDING_TOP - PADDING_BOTTOM
-  const baseY = PADDING_TOP + chartHeight
-
   const yFor = (ele: number) => PADDING_TOP + chartHeight - ((ele - min) / range) * chartHeight
 
   const coords = withEle.map((p, i) => {
-    const x = PADDING_LEFT + (distances[i] / totalDistance) * chartWidth
+    const x = (distances[i] / totalDistance) * WIDTH
     return `${x.toFixed(1)},${yFor(p.ele).toFixed(1)}`
   })
 
   const linePath = `M${coords.join(' L')}`
-  const areaPath = `${linePath} L${WIDTH},${baseY} L${PADDING_LEFT},${baseY} Z`
-  const midElevation = (min + max) / 2
+  const areaPath = `${linePath} L${WIDTH},${PADDING_TOP + chartHeight} L0,${PADDING_TOP + chartHeight} Z`
+  const levels = [max, mid, min]
 
   return (
-    <svg
-      viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      className="elevation-chart"
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={`Profil d'élévation du parcours, de ${Math.round(min)} à ${Math.round(max)} mètres d'altitude`}
-    >
-      {[min, midElevation, max].map((value, i) => (
-        <g key={i}>
-          <line x1={PADDING_LEFT} y1={yFor(value)} x2={WIDTH} y2={yFor(value)} className="elevation-gridline" />
-          <text x={1} y={yFor(value) + 3.5} className="elevation-axis-label">
+    <div className="elevation-chart-wrap">
+      {/* Libellés en HTML, pas en <text> SVG : le SVG est étiré indépendamment en x/y
+          (preserveAspectRatio="none") pour remplir la largeur, ce qui déformait les
+          chiffres et les rendait flous/tassés. */}
+      <div className="elevation-axis">
+        {levels.map((value, i) => (
+          <span key={i} className="elevation-axis-label" style={{ top: `${(yFor(value) / HEIGHT) * 100}%` }}>
             {Math.round(value)} m
-          </text>
-        </g>
-      ))}
-      <path d={areaPath} className="elevation-area" />
-      <path d={linePath} className="elevation-line" fill="none" />
-    </svg>
+          </span>
+        ))}
+      </div>
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        className="elevation-chart"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`Profil d'élévation du parcours, de ${Math.round(min)} à ${Math.round(max)} mètres d'altitude`}
+      >
+        {levels.map((value, i) => (
+          <line key={i} x1={0} y1={yFor(value)} x2={WIDTH} y2={yFor(value)} className="elevation-gridline" />
+        ))}
+        <path d={areaPath} className="elevation-area" />
+        <path d={linePath} className="elevation-line" fill="none" />
+      </svg>
+    </div>
   )
 }

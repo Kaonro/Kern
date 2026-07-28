@@ -274,8 +274,31 @@
   margin-top: 1rem;
 }
 
+.elevation-chart-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0.6rem;
+}
+
+.elevation-axis {
+  position: relative;
+  width: 2.8rem;
+  flex-shrink: 0;
+}
+
+.elevation-axis-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 .elevation-chart {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   height: 120px;
   display: block;
 }
@@ -295,13 +318,6 @@
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 3 3;
-}
-
-.elevation-axis-label {
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  fill: var(--color-text-muted);
-  font-weight: 600;
 }
 
 /* Buttons */
