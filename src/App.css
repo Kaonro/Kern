@@ -276,7 +276,7 @@
 
 .elevation-chart {
   width: 100%;
-  height: 110px;
+  height: 120px;
   display: block;
 }
 
@@ -298,7 +298,8 @@
 }
 
 .elevation-axis-label {
-  font-size: 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
   fill: var(--color-text-muted);
   font-weight: 600;
 }

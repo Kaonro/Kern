@@ -6,10 +6,10 @@ interface ElevationChartProps {
 }
 
 const WIDTH = 300
-const HEIGHT = 110
-const PADDING_LEFT = 32
-const PADDING_TOP = 8
-const PADDING_BOTTOM = 6
+const HEIGHT = 120
+const PADDING_LEFT = 40
+const PADDING_TOP = 12
+const PADDING_BOTTOM = 8
 
 export function ElevationChart({ points }: ElevationChartProps) {
   const withEle = points.filter((p): p is TrackPoint & { ele: number } => p.ele !== undefined)
@@ -55,7 +55,7 @@ export function ElevationChart({ points }: ElevationChartProps) {
       {[min, midElevation, max].map((value, i) => (
         <g key={i}>
           <line x1={PADDING_LEFT} y1={yFor(value)} x2={WIDTH} y2={yFor(value)} className="elevation-gridline" />
-          <text x={0} y={yFor(value) + 3} className="elevation-axis-label">
+          <text x={1} y={yFor(value) + 3.5} className="elevation-axis-label">
             {Math.round(value)} m
           </text>
         </g>
