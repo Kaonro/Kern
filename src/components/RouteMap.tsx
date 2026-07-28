@@ -20,6 +20,7 @@ import { REPORT_TYPE_COLORS } from './icons'
 import { extractTrackSegment, nearestTrackIndex } from '../lib/geo'
 import { relevanceOpacity } from '../lib/reportRelevance'
 import type { WaterPoint } from '../lib/refugesInfo'
+import type { Poi, PoiType } from '../lib/osmPois'
 import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
 
 // Leaflet + bundlers : les chemins d'icônes par défaut ne se résolvent pas automatiquement.
@@ -40,12 +41,55 @@ const waterPointIcon = L.divIcon({
   popupAnchor: [0, -18],
 })
 
+const POI_COLORS: Record<PoiType, string> = {
+  peak: '#8a6642',
+  col: '#5b6b7a',
+  viewpoint: '#a15c9e',
+}
+
+const POI_ICON_SHAPES: Record<PoiType, string> = {
+  peak: '<polyline points="3,19 8,9 11,14 14,7 18,13 21,19"/>',
+  col: '<path d="M2 18L7 9l3 4 2-9 2 9 3-4 5 9"/>',
+  viewpoint: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/>',
+}
+
+const poiIcons: Record<PoiType, L.DivIcon> = {
+  peak: L.divIcon({
+    className: 'poi-icon',
+    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.peak}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.peak}</svg>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 18],
+    popupAnchor: [0, -16],
+  }),
+  col: L.divIcon({
+    className: 'poi-icon',
+    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.col}</svg>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 18],
+    popupAnchor: [0, -16],
+  }),
+  viewpoint: L.divIcon({
+    className: 'poi-icon',
+    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.viewpoint}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.viewpoint}</svg>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -8],
+  }),
+}
+
+const POI_TYPE_LABELS: Record<PoiType, string> = {
+  peak: 'Sommet',
+  col: 'Col',
+  viewpoint: 'Point de vue',
+}
+
 const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
 
-// Palette pour différencier les parcours à l'œil sur la carte simple (accueil).
-// En mode heatmap, tous les tracés restent d'une seule couleur pour préserver l'effet
-// de superposition (plus un chemin est emprunté, plus il s'assombrit).
-const ROUTE_COLORS = ['#2f6f4f', '#1d6fa5', '#b5651d', '#7a4fa3', '#a13d63', '#4a7c59', '#d4a017', '#3c5a99']
+// Palette pastel pour différencier les parcours à l'œil sur la carte simple (accueil),
+// sans être trop criarde sur le fond de carte. En mode heatmap, tous les tracés restent
+// d'une seule couleur pour préserver l'effet de superposition (plus un chemin est
+// emprunté, plus il s'assombrit).
+const ROUTE_COLORS = ['#5fae82', '#6fa8d9', '#d99a5f', '#a980c4', '#c97a97', '#6fbfae', '#dfc06a', '#7f93c4']
 
 function colorForRoute(id: string): string {
   let hash = 0
@@ -57,6 +101,7 @@ interface RouteMapProps {
   routes: RouteRecord[]
   reports?: Report[]
   waterPoints?: WaterPoint[]
+  pois?: Poi[]
   onSelectRoute?: (routeId: string) => void
   pickMode?: boolean
   onPick?: (lat: number, lng: number) => void
@@ -103,6 +148,7 @@ export function RouteMap({
   routes,
   reports = [],
   waterPoints = [],
+  pois = [],
   onSelectRoute,
   pickMode = false,
   onPick,
@@ -214,6 +260,24 @@ export function RouteMap({
                 Voir sur refuges.info
               </a>
             </div>
+          </Popup>
+        </Marker>
+      ))}
+      {pois.map((poi) => (
+        <Marker key={`poi-${poi.id}`} position={[poi.lat, poi.lng]} icon={poiIcons[poi.type]}>
+          <Popup>
+            <strong>{poi.nom}</strong>
+            <div>
+              {POI_TYPE_LABELS[poi.type]}
+              {poi.elevationM ? ` — ${poi.elevationM} m` : ''}
+            </div>
+            {poi.wikipediaUrl && (
+              <div>
+                <a href={poi.wikipediaUrl} target="_blank" rel="noreferrer">
+                  Voir sur Wikipédia
+                </a>
+              </div>
+            )}
           </Popup>
         </Marker>
       ))}

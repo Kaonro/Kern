@@ -7,6 +7,7 @@ import {
   IconAlert,
   IconDroplet,
   IconMap,
+  IconMountain,
   IconSpinner,
   IconWarningTriangle,
 } from '../components/icons'
@@ -18,6 +19,7 @@ import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
 import { fetchAllVotes } from '../lib/votesApi'
 import { fetchWaterPoints, type WaterPoint } from '../lib/refugesInfo'
+import { fetchPois, type Poi } from '../lib/osmPois'
 import type { Report, ReportType, RouteRecord, RouteVote } from '../types'
 
 /** Nombre de parcours mis en avant sur la carte d'accueil simplifiée. */
@@ -44,6 +46,8 @@ export function MapPage() {
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
   const [showWaterPoints, setShowWaterPoints] = useState(true)
+  const [pois, setPois] = useState<Poi[]>([])
+  const [showPois, setShowPois] = useState(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -76,6 +80,11 @@ export function MapPage() {
       .then(setWaterPoints)
       .catch(() => {
         // Pas bloquant : refuges.info est une source externe optionnelle.
+      })
+    fetchPois()
+      .then(setPois)
+      .catch(() => {
+        // Pas bloquant : Overpass/OSM est une source externe optionnelle.
       })
   }, [])
 
@@ -200,6 +209,7 @@ export function MapPage() {
         routes={featuredRoutes}
         reports={reports}
         waterPoints={showWaterPoints ? waterPoints : []}
+        pois={showPois ? pois : []}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}
@@ -221,6 +231,18 @@ export function MapPage() {
           aria-label={showWaterPoints ? "Masquer les points d'eau" : "Afficher les points d'eau"}
         >
           <IconDroplet />
+        </button>
+      )}
+
+      {pois.length > 0 && (
+        <button
+          type="button"
+          className={showPois ? 'poi-toggle-btn active' : 'poi-toggle-btn'}
+          onClick={() => setShowPois((v) => !v)}
+          aria-pressed={showPois}
+          aria-label={showPois ? "Masquer sommets, cols et points de vue" : "Afficher sommets, cols et points de vue"}
+        >
+          <IconMountain />
         </button>
       )}
 

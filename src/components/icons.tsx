@@ -32,6 +32,25 @@ export function IconMountain(props: IconProps) {
   )
 }
 
+/** Silhouette en creux entre deux sommets (col de montagne). */
+export function IconCol(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M2 18L7 9l3 4 2-9 2 9 3-4 5 9" />
+    </Base>
+  )
+}
+
+/** Œil (point de vue remarquable). */
+export function IconViewpoint(props: IconProps) {
+  return (
+    <Base {...props}>
+      <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </Base>
+  )
+}
+
 /** Carte pliée. */
 export function IconMap(props: IconProps) {
   return (
