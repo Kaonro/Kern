@@ -1,3 +1,5 @@
+import { bboxSWNE, type LatLng } from './geocoding'
+
 export type PoiType = 'peak' | 'col' | 'viewpoint'
 
 export interface Poi {
@@ -9,9 +11,6 @@ export interface Poi {
   elevationM?: number
   wikipediaUrl?: string
 }
-
-// Sud, ouest, nord, est — zone du lancement pilote (même zone que refuges.info).
-const PILOT_BBOX = '45.1,5.5,45.8,6.3'
 
 interface OverpassElement {
   id: number
@@ -36,9 +35,12 @@ function wikipediaUrl(wikipedia?: string): string | undefined {
  * celle-ci contient plus de 500 sommets et 1000+ "points de vue" au sens large d'OSM —
  * on ne garde que ceux avec un nom ET une fiche Wikipédia/Wikidata (sauf les cols, déjà
  * assez rares et notables par nature dès qu'ils sont nommés).
+ * `center` vient de la position de l'utilisateur ou de la ville de son profil (sinon
+ * DEFAULT_MAP_CENTER) — pas de zone codée en dur, pour que ça marche à Rouen comme ailleurs.
  */
-export async function fetchPois(): Promise<Poi[]> {
-  const query = `[out:json][timeout:25];(node["natural"="peak"](${PILOT_BBOX});node["natural"="saddle"]["mountain_pass"="yes"](${PILOT_BBOX});node["tourism"="viewpoint"](${PILOT_BBOX}););out body;`
+export async function fetchPois(center: LatLng): Promise<Poi[]> {
+  const bbox = bboxSWNE(center)
+  const query = `[out:json][timeout:25];(node["natural"="peak"](${bbox});node["natural"="saddle"]["mountain_pass"="yes"](${bbox});node["tourism"="viewpoint"](${bbox}););out body;`
   const res = await fetch('https://overpass-api.de/api/interpreter', {
     method: 'POST',
     body: `data=${encodeURIComponent(query)}`,

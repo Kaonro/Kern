@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { RouteMap } from '../components/RouteMap'
+import { RouteMap, DEFAULT_MAP_CENTER } from '../components/RouteMap'
 import {
   IconCheck,
   IconCompass,
@@ -16,6 +16,8 @@ import { LayersMenu } from '../components/LayersMenu'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
+import { geocodeCity, type LatLng } from '../lib/geocoding'
+import { fetchProfile } from '../lib/profileApi'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
 import { fetchAllVotes } from '../lib/votesApi'
@@ -40,7 +42,7 @@ function getCurrentPosition(): Promise<GeolocationPosition> {
 
 export function MapPage() {
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { session, loading: authLoading } = useAuth()
 
   const [routes, setRoutes] = useState<RouteRecord[]>([])
   const [reports, setReports] = useState<Report[]>([])
@@ -51,6 +53,11 @@ export function MapPage() {
   const [showPois, setShowPois] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  // Position de l'utilisateur ou ville de son profil plutôt que Chambéry en dur — pour
+  // qu'un nouvel arrivant loin du pilote (ex. Rouen) voie une carte qui le concerne.
+  const [mapCenter, setMapCenter] = useState<LatLng>(DEFAULT_MAP_CENTER)
+  const [centerResolved, setCenterResolved] = useState(false)
 
   const [step, setStep] = useState<PlacementStep>('idle')
   const [pickedPosition, setPickedPosition] = useState<{ lat: number; lng: number } | null>(null)
@@ -77,17 +84,75 @@ export function MapPage() {
       .catch(() => {
         // Pas bloquant : sans les votes, la mise en avant retombe sur l'ordre par défaut.
       })
-    fetchWaterPoints()
-      .then(setWaterPoints)
+  }, [])
+
+  // Priorité : géolocalisation du navigateur, sinon ville renseignée dans le profil,
+  // sinon on reste sur DEFAULT_MAP_CENTER (et FitToRoutes prend le relais comme avant).
+  useEffect(() => {
+    if (authLoading) return
+    let cancelled = false
+
+    async function resolveCenter() {
+      try {
+        const position = await getCurrentPosition()
+        if (!cancelled) {
+          setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude })
+          setCenterResolved(true)
+        }
+        return
+      } catch {
+        // Géolocalisation refusée/indisponible : on retombe sur la ville du profil.
+      }
+
+      if (session) {
+        try {
+          const profile = await fetchProfile(session.user.id)
+          if (profile?.ville) {
+            const geocoded = await geocodeCity(profile.ville)
+            if (geocoded && !cancelled) {
+              setMapCenter(geocoded)
+              setCenterResolved(true)
+            }
+          }
+        } catch {
+          // Pas grave, on reste sur le centre par défaut.
+        }
+      }
+    }
+
+    resolveCenter()
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, session])
+
+  // Zone des points d'eau/POI recalculée autour du centre résolu — re-déclenché une
+  // fois la géolocalisation/ville connue. `cancelled` évite qu'une réponse pour un
+  // centre précédent (ex. Chambéry, arrivée en retard) n'écrase le résultat du centre
+  // courant (ex. Rouen) — sinon la réponse la plus lente gagne, pas la plus récente.
+  useEffect(() => {
+    let cancelled = false
+
+    fetchWaterPoints(mapCenter)
+      .then((data) => {
+        if (!cancelled) setWaterPoints(data)
+      })
       .catch(() => {
         // Pas bloquant : refuges.info est une source externe optionnelle.
       })
-    fetchPois()
-      .then(setPois)
+    fetchPois(mapCenter)
+      .then((data) => {
+        if (!cancelled) setPois(data)
+      })
       .catch(() => {
         // Pas bloquant : Overpass/OSM est une source externe optionnelle.
       })
-  }, [])
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapCenter.lat, mapCenter.lng])
 
   // Carte d'accueil simplifiée façon Komoot : seulement les parcours les plus actifs
   // dans la communauté (votes + signalements cumulés), pas tous les tracés en heatmap.
@@ -215,6 +280,8 @@ export function MapPage() {
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}
         pickedPosition={pickedPosition}
+        center={mapCenter}
+        fitToRoutes={!centerResolved}
       />
 
       {routes.length > FEATURED_ROUTES_COUNT && step === 'idle' && (

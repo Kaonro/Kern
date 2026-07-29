@@ -83,7 +83,8 @@ const POI_TYPE_LABELS: Record<PoiType, string> = {
   viewpoint: 'Point de vue',
 }
 
-const CHAMBERY_CENTER: [number, number] = [45.5646, 5.9178]
+/** Centre par défaut quand on n'a ni géolocalisation ni ville de profil — le pilote a démarré ici. */
+export const DEFAULT_MAP_CENTER = { lat: 45.5646, lng: 5.9178 }
 
 // Palette pastel pour différencier les parcours à l'œil sur la carte simple (accueil),
 // sans être trop criarde sur le fond de carte. En mode heatmap, tous les tracés restent
@@ -104,14 +105,21 @@ interface RouteMapProps {
    * réservé à la vue densité dédiée à la génération de parcours. La carte d'accueil
    * utilise des tracés pleins, plus lisibles avec peu de parcours affichés. */
   heatmap?: boolean
+  /** Centre initial (et de recentrage) de la carte — position de l'utilisateur ou ville
+   * de son profil si connues, sinon DEFAULT_MAP_CENTER. */
+  center?: { lat: number; lng: number }
+  /** Recadre automatiquement sur les tracés chargés. À couper quand `center` vient d'une
+   * position/ville connue : sinon un nouvel arrivant loin de Chambéry se retrouverait
+   * quand même recentré sur les seuls parcours actuellement en base. */
+  fitToRoutes?: boolean
 }
 
-function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
+function FitToRoutes({ routes, enabled }: { routes: RouteRecord[]; enabled: boolean }) {
   const map = useMap()
   const routeIds = routes.map((r) => r.id).join(',')
 
   useEffect(() => {
-    if (routes.length === 0) return
+    if (!enabled || routes.length === 0) return
     const bounds = L.latLngBounds(
       routes.flatMap((route) => route.gpx_track.map((p) => [p.lat, p.lng] as [number, number])),
     )
@@ -119,7 +127,18 @@ function FitToRoutes({ routes }: { routes: RouteRecord[] }) {
       map.fitBounds(bounds, { padding: [32, 32] })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, routeIds])
+  }, [map, routeIds, enabled])
+
+  return null
+}
+
+function RecenterMap({ center }: { center: { lat: number; lng: number } }) {
+  const map = useMap()
+
+  useEffect(() => {
+    map.setView([center.lat, center.lng])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, center.lat, center.lng])
 
   return null
 }
@@ -148,6 +167,8 @@ export function RouteMap({
   onPick,
   pickedPosition,
   heatmap = false,
+  center = DEFAULT_MAP_CENTER,
+  fitToRoutes = true,
 }: RouteMapProps) {
   const routesById = useMemo(() => new Map(routes.map((route) => [route.id, route])), [routes])
 
@@ -160,13 +181,19 @@ export function RouteMap({
   }
 
   return (
-    <MapContainer center={CHAMBERY_CENTER} zoom={12} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+    <MapContainer
+      center={[center.lat, center.lng]}
+      zoom={12}
+      zoomControl={false}
+      style={{ height: '100%', width: '100%' }}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Points d&#39;eau : <a href="https://www.refuges.info">refuges.info</a> (CC BY-SA)'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ZoomControl position="bottomleft" />
-      <FitToRoutes routes={routes} />
+      <RecenterMap center={center} />
+      <FitToRoutes routes={routes} enabled={fitToRoutes} />
       <PickModeHandler active={pickMode} onPick={onPick} />
       {routes.map((route, index) => (
         <Polyline
