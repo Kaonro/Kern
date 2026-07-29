@@ -11,6 +11,7 @@ import { RouteDetailPage } from './pages/RouteDetailPage'
 import { AuthPage } from './pages/AuthPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { StatsPage } from './pages/StatsPage'
+import { WelcomeModal } from './components/WelcomeModal'
 import './App.css'
 
 /** Enregistre une visite (compteur simple, sans donnée personnelle) à chaque changement de page. */
@@ -29,6 +30,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <PageViewLogger />
+        <WelcomeModal />
         <div className="app-shell">
           <NavBar />
           <MobileNav />
