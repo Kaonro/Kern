@@ -406,6 +406,18 @@ export function IconCalendar(props: IconProps) {
   )
 }
 
+/** Graphique en barres (tableau de bord). */
+export function IconChart(props: IconProps) {
+  return (
+    <Base {...props}>
+      <line x1="4" y1="20" x2="20" y2="20" />
+      <rect x="6" y="12" width="3" height="8" />
+      <rect x="11" y="7" width="3" height="13" />
+      <rect x="16" y="14" width="3" height="6" />
+    </Base>
+  )
+}
+
 /** Boussole (états vides / recherche). */
 export function IconCompass(props: IconProps) {
   return (

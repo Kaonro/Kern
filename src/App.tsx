@@ -1,5 +1,7 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
+import { logPageView } from './lib/statsApi'
 import { NavBar } from './components/NavBar'
 import { MobileNav } from './components/MobileNav'
 import { MapPage } from './pages/MapPage'
@@ -8,12 +10,25 @@ import { UploadGpxPage } from './pages/UploadGpxPage'
 import { RouteDetailPage } from './pages/RouteDetailPage'
 import { AuthPage } from './pages/AuthPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { StatsPage } from './pages/StatsPage'
 import './App.css'
+
+/** Enregistre une visite (compteur simple, sans donnée personnelle) à chaque changement de page. */
+function PageViewLogger() {
+  const location = useLocation()
+
+  useEffect(() => {
+    logPageView(location.pathname)
+  }, [location.pathname])
+
+  return null
+}
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <PageViewLogger />
         <div className="app-shell">
           <NavBar />
           <MobileNav />
@@ -25,6 +40,7 @@ function App() {
               <Route path="/routes/:id" element={<RouteDetailPage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/stats" element={<StatsPage />} />
             </Routes>
           </main>
         </div>
