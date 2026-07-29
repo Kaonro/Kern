@@ -6,8 +6,10 @@ export function logPageView(path: string): void {
   supabase
     .from('page_views')
     .insert({ path })
-    .then(() => {})
-    .catch(() => {})
+    .then(
+      () => {},
+      () => {},
+    )
 }
 
 export interface DashboardStats {
