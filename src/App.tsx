@@ -11,6 +11,7 @@ import { RouteDetailPage } from './pages/RouteDetailPage'
 import { AuthPage } from './pages/AuthPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { StatsPage } from './pages/StatsPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import { WelcomeModal } from './components/WelcomeModal'
 import './App.css'
 
@@ -43,6 +44,7 @@ function App() {
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/stats" element={<StatsPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>
         </div>
