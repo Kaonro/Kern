@@ -29,25 +29,43 @@ function wikipediaUrl(wikipedia?: string): string | undefined {
   return `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`
 }
 
+const OVERPASS_ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
+
 /**
  * Sommets, cols et points de vue depuis OpenStreetMap (Overpass API, gratuit, sans clé).
- * On récupère large puis on filtre nous-mêmes côté client : sans filtre, une zone comme
- * celle-ci contient plus de 500 sommets et 1000+ "points de vue" au sens large d'OSM —
- * on ne garde que ceux avec un nom ET une fiche Wikipédia/Wikidata (sauf les cols, déjà
- * assez rares et notables par nature dès qu'ils sont nommés).
+ * On ne garde que ceux avec un nom ET une fiche Wikipédia/Wikidata (sauf les cols, déjà
+ * assez rares et notables par nature dès qu'ils sont nommés) — filtré côté serveur Overpass
+ * plutôt que côté client : sans ce filtre, une zone comme celle-ci contient plus de 500
+ * sommets et 1000+ "points de vue" au sens large d'OSM, et le temps de réponse dépassait
+ * régulièrement le timeout (504) sur l'instance publique.
  * `center` vient de la position de l'utilisateur ou de la ville de son profil (sinon
  * DEFAULT_MAP_CENTER) — pas de zone codée en dur, pour que ça marche à Rouen comme ailleurs.
  */
 export async function fetchPois(center: LatLng): Promise<Poi[]> {
   const bbox = bboxSWNE(center)
-  const query = `[out:json][timeout:25];(node["natural"="peak"](${bbox});node["natural"="saddle"]["mountain_pass"="yes"](${bbox});node["tourism"="viewpoint"](${bbox}););out body;`
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body: `data=${encodeURIComponent(query)}`,
-  })
-  if (!res.ok) throw new Error('OpenStreetMap (Overpass) indisponible')
-  const data = (await res.json()) as { elements: OverpassElement[] }
+  const query = `[out:json][timeout:25];(
+    node["natural"="peak"]["name"]["wikipedia"](${bbox});
+    node["natural"="peak"]["name"]["wikidata"](${bbox});
+    node["natural"="saddle"]["mountain_pass"="yes"]["name"](${bbox});
+    node["tourism"="viewpoint"]["name"]["wikipedia"](${bbox});
+    node["tourism"="viewpoint"]["name"]["wikidata"](${bbox});
+  );out body;`
 
+  let lastError: unknown
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const res = await fetch(endpoint, { method: 'POST', body: `data=${encodeURIComponent(query)}` })
+      if (!res.ok) throw new Error('OpenStreetMap (Overpass) indisponible')
+      return parsePois(await res.json())
+    } catch (err) {
+      lastError = err
+      // Instance publique surchargée/en timeout : on retente sur le miroir suivant.
+    }
+  }
+  throw lastError
+}
+
+function parsePois(data: { elements: OverpassElement[] }): Poi[] {
   const pois: Poi[] = []
   for (const el of data.elements) {
     const tags = el.tags ?? {}
