@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 
-export type PoiType = 'peak' | 'col' | 'viewpoint'
+export type PoiType = 'peak' | 'col' | 'viewpoint' | 'monument' | 'park'
 
 export interface Poi {
   id: number
@@ -23,10 +23,11 @@ interface PoiRow {
 }
 
 /**
- * Sommets, cols et points de vue OpenStreetMap, importés une fois dans notre base
- * (cf. supabase/013_add_pois.sql) plutôt qu'interrogés en direct sur Overpass à chaque
- * visite : le service public gratuit est régulièrement surchargé ("server too busy"),
- * ce qui rendait la couche invisible de façon intermittente pour les visiteurs.
+ * Sommets, cols, points de vue, monuments/patrimoine et parcs OpenStreetMap, importés une
+ * fois dans notre base (cf. supabase/013_add_pois.sql et 014_add_poi_categories.sql)
+ * plutôt qu'interrogés en direct sur Overpass à chaque visite : le service public gratuit
+ * est régulièrement surchargé ("server too busy"), ce qui rendait la couche invisible de
+ * façon intermittente pour les visiteurs.
  */
 export async function fetchPois(): Promise<Poi[]> {
   const { data, error } = await supabase.from('pois').select('*')

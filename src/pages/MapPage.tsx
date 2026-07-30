@@ -7,7 +7,7 @@ import {
   IconAlert,
   IconDroplet,
   IconMap,
-  IconMountain,
+  IconPin,
   IconSpinner,
   IconWarningTriangle,
 } from '../components/icons'
@@ -311,8 +311,8 @@ export function MapPage() {
             ? [
                 {
                   key: 'pois',
-                  label: 'Sommets, cols, points de vue',
-                  icon: <IconMountain />,
+                  label: 'Lieux à visiter',
+                  icon: <IconPin />,
                   active: showPois,
                   onToggle: () => setShowPois((v) => !v),
                 },

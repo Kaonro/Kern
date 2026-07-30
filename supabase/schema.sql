@@ -229,14 +229,15 @@ create policy "N'importe qui peut enregistrer une visite" on public.page_views
 create policy "Les stats de visite sont visibles par tous" on public.page_views
   for select using (true);
 
--- Sommets, cols et points de vue OpenStreetMap, importés une fois via script (voir
--- supabase/013_add_pois.sql pour les données) plutôt qu'interrogés en direct sur Overpass
--- à chaque visite : le service public gratuit est régulièrement surchargé. Pas d'écriture
--- publique : seul un import ponctuel (SQL editor / service role) alimente cette table.
+-- Sommets, cols, points de vue, monuments/patrimoine et parcs OpenStreetMap, importés une
+-- fois via script (voir supabase/013_add_pois.sql et 014_add_poi_categories.sql pour les
+-- données) plutôt qu'interrogés en direct sur Overpass à chaque visite : le service public
+-- gratuit est régulièrement surchargé. Pas d'écriture publique : seul un import ponctuel
+-- (SQL editor / service role) alimente cette table.
 create table public.pois (
   id bigint primary key, -- id du nœud OSM, réutilisé tel quel pour éviter les doublons au ré-import
   nom text not null,
-  type text not null check (type in ('peak', 'col', 'viewpoint')),
+  type text not null check (type in ('peak', 'col', 'viewpoint', 'monument', 'park')),
   lat double precision not null,
   lng double precision not null,
   elevation_m integer,

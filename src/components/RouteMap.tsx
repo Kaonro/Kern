@@ -45,42 +45,52 @@ const POI_COLORS: Record<PoiType, string> = {
   peak: '#8a6642',
   col: '#5b6b7a',
   viewpoint: '#a15c9e',
+  monument: '#a1522f',
+  park: '#4f8f52',
 }
 
-const POI_ICON_SHAPES: Record<PoiType, string> = {
-  peak: '<polyline points="3,19 8,9 11,14 14,7 18,13 21,19"/>',
-  col: '<path d="M2 18L7 9l3 4 2-9 2 9 3-4 5 9"/>',
-  viewpoint: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/>',
+// Anchor "10,18" (bas) pour les icônes en forme de pointe/repère, "10,10" (centre) pour
+// celles en forme de disque/cercle — cohérent avec la forme de chaque pictogramme.
+const POI_ICON_SHAPES: Record<PoiType, { path: string; anchor: [number, number]; popupY: number }> = {
+  peak: { path: '<polyline points="3,19 8,9 11,14 14,7 18,13 21,19"/>', anchor: [10, 18], popupY: -16 },
+  col: { path: '<path d="M2 18L7 9l3 4 2-9 2 9 3-4 5 9"/>', anchor: [10, 18], popupY: -16 },
+  viewpoint: {
+    path: '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/>',
+    anchor: [10, 10],
+    popupY: -8,
+  },
+  // Fronton de temple/monument, pour rester lisible en petite taille sans se confondre avec un sommet.
+  monument: { path: '<path d="M4 21h16M5 21V9M19 21V9M3 9h18l-2.5-5h-13z"/>', anchor: [10, 18], popupY: -16 },
+  // Sapin/arbre stylisé, pour les parcs et espaces verts.
+  park: {
+    path: '<path d="M12 3l5 7h-2.8l3.8 6H6l3.8-6H7z"/><line x1="12" y1="16" x2="12" y2="21"/>',
+    anchor: [10, 18],
+    popupY: -16,
+  },
 }
 
-const poiIcons: Record<PoiType, L.DivIcon> = {
-  peak: L.divIcon({
-    className: 'poi-icon',
-    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.peak}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.peak}</svg>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 18],
-    popupAnchor: [0, -16],
+const poiIcons: Record<PoiType, L.DivIcon> = Object.fromEntries(
+  (Object.keys(POI_ICON_SHAPES) as PoiType[]).map((type) => {
+    const { path, anchor, popupY } = POI_ICON_SHAPES[type]
+    return [
+      type,
+      L.divIcon({
+        className: 'poi-icon',
+        html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS[type]}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`,
+        iconSize: [20, 20],
+        iconAnchor: anchor,
+        popupAnchor: [0, popupY],
+      }),
+    ]
   }),
-  col: L.divIcon({
-    className: 'poi-icon',
-    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.col}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.col}</svg>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 18],
-    popupAnchor: [0, -16],
-  }),
-  viewpoint: L.divIcon({
-    className: 'poi-icon',
-    html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="${POI_COLORS.viewpoint}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${POI_ICON_SHAPES.viewpoint}</svg>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -8],
-  }),
-}
+) as Record<PoiType, L.DivIcon>
 
 const POI_TYPE_LABELS: Record<PoiType, string> = {
   peak: 'Sommet',
   col: 'Col',
   viewpoint: 'Point de vue',
+  monument: 'Monument',
+  park: 'Parc',
 }
 
 /** Centre par défaut quand on n'a ni géolocalisation ni ville de profil — le pilote a démarré ici. */
