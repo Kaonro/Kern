@@ -4,10 +4,11 @@ export interface LatLng {
 }
 
 // Demi-étendue (en degrés) de la zone couverte autour d'un centre pour les données
-// externes (points d'eau, sommets...) — calée sur la taille de la zone pilote initiale
-// (Chambéry/Grenoble/Chartreuse/Bauges), pour que ça marche pareil ailleurs (Rouen...).
-const HALF_SPAN_LAT = 0.4
-const HALF_SPAN_LNG = 0.45
+// externes (points d'eau, sommets...) — calée à l'origine sur la zone pilote initiale
+// (Chambéry/Grenoble/Chartreuse/Bauges), élargie x2 (~4x en surface) pour couvrir une
+// région plus large, pour que ça marche pareil ailleurs (Rouen...).
+const HALF_SPAN_LAT = 0.8
+const HALF_SPAN_LNG = 0.9
 
 /** Boîte "ouest,sud,est,nord" (format refuges.info) autour d'un centre. */
 export function bboxWSEN(center: LatLng): string {
