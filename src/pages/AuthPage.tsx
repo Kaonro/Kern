@@ -24,7 +24,11 @@ export function AuthPage() {
     const { data, error: authError } =
       mode === 'login'
         ? await supabase.auth.signInWithPassword({ email, password })
-        : await supabase.auth.signUp({ email, password, options: { data: { pseudo, ville } } })
+        : await supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { pseudo, ville }, emailRedirectTo: window.location.origin },
+          })
 
     setLoading(false)
     if (authError) {
