@@ -7,6 +7,7 @@ import {
   IconAlert,
   IconDroplet,
   IconMap,
+  IconMountain,
   IconPin,
   IconSpinner,
   IconWarningTriangle,
@@ -51,6 +52,7 @@ export function MapPage() {
   const [showWaterPoints, setShowWaterPoints] = useState(false)
   const [pois, setPois] = useState<Poi[]>([])
   const [showPois, setShowPois] = useState(false)
+  const [showPlaces, setShowPlaces] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -157,6 +159,12 @@ export function MapPage() {
         // Pas bloquant : la couche sommets/cols/points de vue reste optionnelle.
       })
   }, [])
+
+  // Deux calques distincts à partir des mêmes données : le côté montagne (sommets, cols,
+  // points de vue) et les "lieux à visiter" façon Komoot (monuments, parcs) — pour que
+  // l'un ne remplace pas l'autre dans le menu.
+  const mountainPois = useMemo(() => pois.filter((p) => p.type === 'peak' || p.type === 'col' || p.type === 'viewpoint'), [pois])
+  const placePois = useMemo(() => pois.filter((p) => p.type === 'monument' || p.type === 'park'), [pois])
 
   // Carte d'accueil simplifiée façon Komoot : seulement les parcours les plus actifs
   // dans la communauté (votes + signalements cumulés), pas tous les tracés en heatmap.
@@ -279,7 +287,7 @@ export function MapPage() {
         routes={featuredRoutes}
         reports={reports}
         waterPoints={showWaterPoints ? waterPoints : []}
-        pois={showPois ? pois : []}
+        pois={[...(showPois ? mountainPois : []), ...(showPlaces ? placePois : [])]}
         onSelectRoute={(id) => navigate(`/routes/${id}`)}
         pickMode={step === 'choosing-location'}
         onPick={handleMapPick}
@@ -307,14 +315,25 @@ export function MapPage() {
                 },
               ]
             : []),
-          ...(pois.length > 0
+          ...(mountainPois.length > 0
             ? [
                 {
                   key: 'pois',
-                  label: 'Lieux à visiter',
-                  icon: <IconPin />,
+                  label: 'Sommets, cols, points de vue',
+                  icon: <IconMountain />,
                   active: showPois,
                   onToggle: () => setShowPois((v) => !v),
+                },
+              ]
+            : []),
+          ...(placePois.length > 0
+            ? [
+                {
+                  key: 'places',
+                  label: 'Lieux à visiter',
+                  icon: <IconPin />,
+                  active: showPlaces,
+                  onToggle: () => setShowPlaces((v) => !v),
                 },
               ]
             : []),
