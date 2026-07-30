@@ -22,7 +22,7 @@ import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
 import { fetchAllVotes } from '../lib/votesApi'
 import { fetchWaterPoints, type WaterPoint } from '../lib/refugesInfo'
-import { fetchPois, type Poi } from '../lib/osmPois'
+import { fetchPois, type Poi } from '../lib/poisApi'
 import type { Report, ReportType, RouteRecord, RouteVote } from '../types'
 
 /** Nombre de parcours mis en avant sur la carte d'accueil simplifiée. */
@@ -126,7 +126,7 @@ export function MapPage() {
     }
   }, [authLoading, session])
 
-  // Zone des points d'eau/POI recalculée autour du centre résolu — re-déclenché une
+  // Zone des points d'eau recalculée autour du centre résolu — re-déclenché une
   // fois la géolocalisation/ville connue. `cancelled` évite qu'une réponse pour un
   // centre précédent (ex. Chambéry, arrivée en retard) n'écrase le résultat du centre
   // courant (ex. Rouen) — sinon la réponse la plus lente gagne, pas la plus récente.
@@ -140,19 +140,23 @@ export function MapPage() {
       .catch(() => {
         // Pas bloquant : refuges.info est une source externe optionnelle.
       })
-    fetchPois(mapCenter)
-      .then((data) => {
-        if (!cancelled) setPois(data)
-      })
-      .catch(() => {
-        // Pas bloquant : Overpass/OSM est une source externe optionnelle.
-      })
 
     return () => {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapCenter.lat, mapCenter.lng])
+
+  // Sommets/cols/points de vue importés une fois dans notre base (cf. supabase/013_add_pois.sql)
+  // plutôt qu'interrogés en direct sur Overpass à chaque visite : le service public gratuit
+  // est régulièrement surchargé ("server too busy"), ce qui rendait la couche intermittente.
+  useEffect(() => {
+    fetchPois()
+      .then(setPois)
+      .catch(() => {
+        // Pas bloquant : la couche sommets/cols/points de vue reste optionnelle.
+      })
+  }, [])
 
   // Carte d'accueil simplifiée façon Komoot : seulement les parcours les plus actifs
   // dans la communauté (votes + signalements cumulés), pas tous les tracés en heatmap.

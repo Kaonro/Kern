@@ -20,7 +20,7 @@ import { REPORT_TYPE_COLORS } from './icons'
 import { extractTrackSegment, nearestTrackIndex } from '../lib/geo'
 import { relevanceOpacity } from '../lib/reportRelevance'
 import type { WaterPoint } from '../lib/refugesInfo'
-import type { Poi, PoiType } from '../lib/osmPois'
+import type { Poi, PoiType } from '../lib/poisApi'
 import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
 
 // Leaflet + bundlers : les chemins d'icônes par défaut ne se résolvent pas automatiquement.
