@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { IconArrowRight, IconCheck, IconKey, IconSpinner, IconWarningTriangle } from '../components/icons'
+import { IconArrowRight, IconCheck, IconGoogle, IconKey, IconSpinner, IconWarningTriangle } from '../components/icons'
 import { toFriendlyError } from '../lib/errors'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 
@@ -14,6 +14,22 @@ export function AuthPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+
+  async function handleGoogleSignIn() {
+    setError('')
+    setGoogleLoading(true)
+    const { error: authError } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+    // En cas de succès, le navigateur quitte la page pour Google — pas besoin de navigate()
+    // ni de repasser loading à false, on ne reste jamais affiché après ce point.
+    if (authError) {
+      setError(toFriendlyError(authError))
+      setGoogleLoading(false)
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -47,6 +63,18 @@ export function AuthPage() {
         <h1>
           <IconKey /> {mode === 'login' ? 'Connexion' : 'Inscription'}
         </h1>
+        <button
+          type="button"
+          className="btn btn-google btn-block"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+        >
+          {googleLoading ? <IconSpinner /> : <IconGoogle />}
+          Continuer avec Google
+        </button>
+        <div className="auth-divider">
+          <span>ou</span>
+        </div>
         <form onSubmit={handleSubmit}>
           <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input
