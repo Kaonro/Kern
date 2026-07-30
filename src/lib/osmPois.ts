@@ -29,7 +29,11 @@ function wikipediaUrl(wikipedia?: string): string | undefined {
   return `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`
 }
 
-const OVERPASS_ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter']
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.osm.ch/api/interpreter',
+]
 
 /** L'instance publique Overpass est parfois indisponible plusieurs minutes d'affilée :
  * on garde le dernier résultat par zone pour que la couche reste utilisable en attendant. */
