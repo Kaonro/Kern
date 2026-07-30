@@ -29,10 +29,13 @@ function wikipediaUrl(wikipedia?: string): string | undefined {
   return `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`
 }
 
+// overpass.osm.ch a été écarté : il répond vite avec un HTTP 200 mais sa base de
+// données est vide/cassée (0 résultat même sur des requêtes qui devraient forcément
+// matcher), ce qui court-circuitait silencieusement les autres miroirs.
 const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.osm.ch/api/interpreter',
 ]
 
 /** L'instance publique Overpass est parfois indisponible plusieurs minutes d'affilée :
@@ -63,8 +66,48 @@ function writeCache(bbox: string, pois: Poi[]): void {
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+/** Timeout par tentative — sans ça, un miroir qui accepte la connexion mais ne répond
+ * jamais (constaté sur overpass.kumi.systems) bloque `fetch` bien plus longtemps que le
+ * `[timeout:25]` de la requête Overpass elle-même, qui ne s'applique qu'une fois la
+ * requête reçue côté serveur. */
+const FETCH_TIMEOUT_MS = 8000
+
+async function fetchWithTimeout(url: string, body: string): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    return await fetch(url, { method: 'POST', body, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+// Une seule requête combinant sommets+cols+points de vue s'est avérée trop coûteuse
+// pour Overpass sous charge (timeout même sur des miroirs par ailleurs fonctionnels) —
+// trois requêtes plus légères en parallèle passent bien plus souvent, et une catégorie
+// en échec n'empêche plus les deux autres de s'afficher.
+const POI_QUERY_CLAUSES: ((bbox: string) => string)[] = [
+  (bbox) => `node["natural"="peak"]["name"]["wikipedia"](${bbox});node["natural"="peak"]["name"]["wikidata"](${bbox});`,
+  (bbox) => `node["natural"="saddle"]["mountain_pass"="yes"]["name"](${bbox});`,
+  (bbox) =>
+    `node["tourism"="viewpoint"]["name"]["wikipedia"](${bbox});node["tourism"="viewpoint"]["name"]["wikidata"](${bbox});`,
+]
+
+async function fetchPoiCategory(clause: string): Promise<OverpassElement[]> {
+  const query = `[out:json][timeout:20];(${clause});out body;`
+  let lastError: unknown
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const res = await fetchWithTimeout(endpoint, `data=${encodeURIComponent(query)}`)
+      if (!res.ok) throw new Error('OpenStreetMap (Overpass) indisponible')
+      const data = (await res.json()) as { elements: OverpassElement[] }
+      return data.elements
+    } catch (err) {
+      lastError = err
+      // Miroir en panne/en timeout : on passe directement au suivant.
+    }
+  }
+  throw lastError
 }
 
 /**
@@ -72,45 +115,29 @@ function sleep(ms: number): Promise<void> {
  * On ne garde que ceux avec un nom ET une fiche Wikipédia/Wikidata (sauf les cols, déjà
  * assez rares et notables par nature dès qu'ils sont nommés) — filtré côté serveur Overpass
  * plutôt que côté client : sans ce filtre, une zone comme celle-ci contient plus de 500
- * sommets et 1000+ "points de vue" au sens large d'OSM, et le temps de réponse dépassait
- * régulièrement le timeout (504) sur l'instance publique.
- * L'instance publique reste malgré tout sujette à des pannes/timeouts ponctuels sous
- * charge : on retente chaque miroir une fois avant de l'abandonner, et on retombe sur
- * le dernier résultat connu (sessionStorage) si tous les miroirs échouent.
+ * sommets et 1000+ "points de vue" au sens large d'OSM.
+ * Les trois catégories partent en parallèle (cf. `POI_QUERY_CLAUSES`) et chacune essaie
+ * plusieurs miroirs (timeout court, cf. `fetchWithTimeout`) : l'instance publique reste
+ * sujette à des pannes ponctuelles, et une catégorie en échec ne doit pas priver les
+ * autres. En dernier recours, on retombe sur le dernier résultat connu (sessionStorage).
  * `center` vient de la position de l'utilisateur ou de la ville de son profil (sinon
  * DEFAULT_MAP_CENTER) — pas de zone codée en dur, pour que ça marche à Rouen comme ailleurs.
  */
 export async function fetchPois(center: LatLng): Promise<Poi[]> {
   const bbox = bboxSWNE(center)
-  const query = `[out:json][timeout:25];(
-    node["natural"="peak"]["name"]["wikipedia"](${bbox});
-    node["natural"="peak"]["name"]["wikidata"](${bbox});
-    node["natural"="saddle"]["mountain_pass"="yes"]["name"](${bbox});
-    node["tourism"="viewpoint"]["name"]["wikipedia"](${bbox});
-    node["tourism"="viewpoint"]["name"]["wikidata"](${bbox});
-  );out body;`
+  const results = await Promise.allSettled(POI_QUERY_CLAUSES.map((clause) => fetchPoiCategory(clause(bbox))))
 
-  let lastError: unknown
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const res = await fetch(endpoint, { method: 'POST', body: `data=${encodeURIComponent(query)}` })
-        if (!res.ok) throw new Error('OpenStreetMap (Overpass) indisponible')
-        const pois = parsePois(await res.json())
-        writeCache(bbox, pois)
-        return pois
-      } catch (err) {
-        lastError = err
-        // Instance publique surchargée/en timeout : une seconde tentative résout
-        // souvent le problème avant de passer au miroir suivant.
-        if (attempt === 0) await sleep(1500)
-      }
-    }
+  const elements = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
+  const pois = parsePois({ elements })
+
+  if (results.every((r) => r.status === 'rejected')) {
+    const cached = readCache(bbox)
+    if (cached) return cached
+    throw (results[0] as PromiseRejectedResult).reason
   }
 
-  const cached = readCache(bbox)
-  if (cached) return cached
-  throw lastError
+  writeCache(bbox, pois)
+  return pois
 }
 
 function parsePois(data: { elements: OverpassElement[] }): Poi[] {
