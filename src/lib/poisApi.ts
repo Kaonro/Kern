@@ -22,17 +22,29 @@ interface PoiRow {
   wikipedia_url: string | null
 }
 
+// L'API Supabase plafonne à 1000 lignes par requête (db-max-rows) quel que soit le Range
+// demandé : au-delà de ce nombre de POI, il faut paginer nous-mêmes pour tout récupérer.
+const PAGE_SIZE = 1000
+
 /**
  * Sommets, cols, points de vue, monuments/patrimoine et parcs OpenStreetMap, importés une
- * fois dans notre base (cf. supabase/013_add_pois.sql et 014_add_poi_categories.sql)
- * plutôt qu'interrogés en direct sur Overpass à chaque visite : le service public gratuit
- * est régulièrement surchargé ("server too busy"), ce qui rendait la couche invisible de
- * façon intermittente pour les visiteurs.
+ * fois dans notre base (cf. supabase/013_add_pois.sql et suivantes) plutôt qu'interrogés
+ * en direct sur Overpass à chaque visite : le service public gratuit est régulièrement
+ * surchargé ("server too busy"), ce qui rendait la couche invisible de façon intermittente.
  */
 export async function fetchPois(): Promise<Poi[]> {
-  const { data, error } = await supabase.from('pois').select('*')
-  if (error) throw error
-  return (data as PoiRow[]).map((row) => ({
+  const rows: PoiRow[] = []
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from('pois')
+      .select('*')
+      .range(from, from + PAGE_SIZE - 1)
+    if (error) throw error
+    rows.push(...(data as PoiRow[]))
+    if (data.length < PAGE_SIZE) break
+  }
+
+  return rows.map((row) => ({
     id: row.id,
     nom: row.nom,
     type: row.type,
