@@ -1,4 +1,4 @@
-import { bboxWSEN, type LatLng } from './geocoding'
+import { bboxWSEN, type MapBounds } from './geocoding'
 
 export interface WaterPoint {
   id: number
@@ -15,12 +15,12 @@ const WATER_POINT_TYPE_ID = 23
 /**
  * Points d'eau de refuges.info (API publique, lecture seule, CC BY-SA, pas de clé requise)
  * pour pré-remplir la carte avant d'avoir une communauté active. Pas de stockage en base :
- * on interroge en direct à chaque chargement pour rester à jour avec leur communauté.
- * `center` vient de la position de l'utilisateur ou de la ville de son profil (sinon
- * DEFAULT_MAP_CENTER) — pas de zone codée en dur, pour que ça marche à Rouen comme ailleurs.
+ * on interroge en direct à chaque déplacement de la carte pour rester à jour avec leur
+ * communauté. `bounds` vient de la zone actuellement affichée (pas de zone codée en dur,
+ * ni de rayon fixe autour d'une ville — ça marche pareil n'importe où en France).
  */
-export async function fetchWaterPoints(center: LatLng): Promise<WaterPoint[]> {
-  const url = `https://www.refuges.info/api/bbox?bbox=${bboxWSEN(center)}&type_points=${WATER_POINT_TYPE_ID}&nb_points=all&format=geojson&detail=simple`
+export async function fetchWaterPoints(bounds: MapBounds): Promise<WaterPoint[]> {
+  const url = `https://www.refuges.info/api/bbox?bbox=${bboxWSEN(bounds)}&type_points=${WATER_POINT_TYPE_ID}&nb_points=all&format=geojson&detail=simple`
   const res = await fetch(url)
   if (!res.ok) throw new Error('refuges.info indisponible')
   const data = await res.json()

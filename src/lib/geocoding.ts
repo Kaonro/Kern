@@ -3,21 +3,24 @@ export interface LatLng {
   lng: number
 }
 
-// Demi-étendue (en degrés) de la zone couverte autour d'un centre pour les données
-// externes (points d'eau, sommets...) — calée à l'origine sur la zone pilote initiale
-// (Chambéry/Grenoble/Chartreuse/Bauges), élargie x2 (~4x en surface) pour couvrir une
-// région plus large, pour que ça marche pareil ailleurs (Rouen...).
-const HALF_SPAN_LAT = 0.8
-const HALF_SPAN_LNG = 0.9
-
-/** Boîte "ouest,sud,est,nord" (format refuges.info) autour d'un centre. */
-export function bboxWSEN(center: LatLng): string {
-  return `${center.lng - HALF_SPAN_LNG},${center.lat - HALF_SPAN_LAT},${center.lng + HALF_SPAN_LNG},${center.lat + HALF_SPAN_LAT}`
+/** Zone rectangulaire (bornes de la carte affichée) — remplace l'ancien rayon fixe autour
+ * d'un centre : les points d'eau/sommets/lieux se chargent maintenant pour ce qui est
+ * réellement visible à l'écran, pas une zone figée autour de quelques villes pilotes. */
+export interface MapBounds {
+  south: number
+  west: number
+  north: number
+  east: number
 }
 
-/** Boîte "sud,ouest,nord,est" (format Overpass) autour d'un centre. */
-export function bboxSWNE(center: LatLng): string {
-  return `${center.lat - HALF_SPAN_LAT},${center.lng - HALF_SPAN_LNG},${center.lat + HALF_SPAN_LAT},${center.lng + HALF_SPAN_LNG}`
+/** Boîte "ouest,sud,est,nord" (format refuges.info). */
+export function bboxWSEN(bounds: MapBounds): string {
+  return `${bounds.west},${bounds.south},${bounds.east},${bounds.north}`
+}
+
+/** Boîte "sud,ouest,nord,est" (format Overpass). */
+export function bboxSWNE(bounds: MapBounds): string {
+  return `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`
 }
 
 /** Géocode un nom de ville via Nominatim (OpenStreetMap), gratuit et sans clé.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { RouteMap, DEFAULT_MAP_CENTER } from '../components/RouteMap'
 import {
@@ -17,7 +17,7 @@ import { LayersMenu } from '../components/LayersMenu'
 import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { findNearestRoute } from '../lib/geo'
-import { geocodeCity, type LatLng } from '../lib/geocoding'
+import { geocodeCity, type LatLng, type MapBounds } from '../lib/geocoding'
 import { fetchProfile } from '../lib/profileApi'
 import { fetchRoutes } from '../lib/routesApi'
 import { createReport, fetchAllReports } from '../lib/reportsApi'
@@ -28,6 +28,23 @@ import type { Report, ReportType, RouteRecord, RouteVote } from '../types'
 
 /** Nombre de parcours mis en avant sur la carte d'accueil simplifiée. */
 const FEATURED_ROUTES_COUNT = 8
+
+// Plafond de marqueurs (points d'eau + sommets/lieux) selon le zoom : une vue très
+// dézoomée couvre une zone énorme, un plafond bas évite de surcharger un téléphone avec
+// des milliers de marqueurs illisibles à cette échelle. Plus on zoome, plus la zone
+// visible est petite et plus on peut se permettre d'en afficher.
+function poiLimitForZoom(zoom: number): number {
+  if (zoom < 9) return 80
+  if (zoom < 11) return 150
+  if (zoom < 13) return 300
+  if (zoom < 15) return 600
+  return 1000
+}
+
+/** Débounce léger : on ne relance pas les requêtes à chaque frame de pan/zoom, seulement
+ * une fois le mouvement stabilisé (moveend/zoomend le sont déjà, mais des clics de zoom
+ * rapprochés peuvent quand même s'enchaîner). */
+const VIEWPORT_DEBOUNCE_MS = 300
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
@@ -50,7 +67,11 @@ export function MapPage() {
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [waterPoints, setWaterPoints] = useState<WaterPoint[]>([])
   const [showWaterPoints, setShowWaterPoints] = useState(false)
-  const [pois, setPois] = useState<Poi[]>([])
+  // Deux calques distincts, chacun requêté séparément (cf. poisApi.fetchPois) : le côté
+  // montagne (sommets, cols, points de vue) et les "lieux à visiter" façon Komoot
+  // (monuments, parcs) — pour que l'un ne prenne pas toute la place de l'autre.
+  const [mountainPois, setMountainPois] = useState<Poi[]>([])
+  const [placePois, setPlacePois] = useState<Poi[]>([])
   const [showPois, setShowPois] = useState(false)
   const [showPlaces, setShowPlaces] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -60,6 +81,16 @@ export function MapPage() {
   // qu'un nouvel arrivant loin du pilote (ex. Rouen) voie une carte qui le concerne.
   const [mapCenter, setMapCenter] = useState<LatLng>(DEFAULT_MAP_CENTER)
   const [centerResolved, setCenterResolved] = useState(false)
+
+  // Zone actuellement affichée (bornes + zoom), pour charger points d'eau/sommets/lieux
+  // à la demande plutôt que sur un rayon fixe autour d'une poignée de villes pilotes.
+  const [viewport, setViewport] = useState<{ bounds: MapBounds; zoom: number } | null>(null)
+  const viewportDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function handleViewportChange(bounds: MapBounds, zoom: number) {
+    if (viewportDebounce.current) clearTimeout(viewportDebounce.current)
+    viewportDebounce.current = setTimeout(() => setViewport({ bounds, zoom }), VIEWPORT_DEBOUNCE_MS)
+  }
 
   const [step, setStep] = useState<PlacementStep>('idle')
   const [pickedPosition, setPickedPosition] = useState<{ lat: number; lng: number } | null>(null)
@@ -128,14 +159,15 @@ export function MapPage() {
     }
   }, [authLoading, session])
 
-  // Zone des points d'eau recalculée autour du centre résolu — re-déclenché une
-  // fois la géolocalisation/ville connue. `cancelled` évite qu'une réponse pour un
-  // centre précédent (ex. Chambéry, arrivée en retard) n'écrase le résultat du centre
-  // courant (ex. Rouen) — sinon la réponse la plus lente gagne, pas la plus récente.
+  // Points d'eau et sommets/lieux rechargés à chaque déplacement/zoom de la carte
+  // (`viewport`, mis à jour par RouteMap via `onViewportChange`, débounced). `cancelled`
+  // évite qu'une réponse pour une zone quittée entre-temps n'écrase le résultat de la
+  // zone actuelle — sinon la réponse la plus lente gagne, pas la plus récente.
   useEffect(() => {
+    if (!viewport) return
     let cancelled = false
 
-    fetchWaterPoints(mapCenter)
+    fetchWaterPoints(viewport.bounds)
       .then((data) => {
         if (!cancelled) setWaterPoints(data)
       })
@@ -143,28 +175,26 @@ export function MapPage() {
         // Pas bloquant : refuges.info est une source externe optionnelle.
       })
 
-    return () => {
-      cancelled = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapCenter.lat, mapCenter.lng])
-
-  // Sommets/cols/points de vue importés une fois dans notre base (cf. supabase/013_add_pois.sql)
-  // plutôt qu'interrogés en direct sur Overpass à chaque visite : le service public gratuit
-  // est régulièrement surchargé ("server too busy"), ce qui rendait la couche intermittente.
-  useEffect(() => {
-    fetchPois()
-      .then(setPois)
+    const limit = poiLimitForZoom(viewport.zoom)
+    fetchPois(viewport.bounds, ['peak', 'col', 'viewpoint'], limit)
+      .then((data) => {
+        if (!cancelled) setMountainPois(data)
+      })
       .catch(() => {
         // Pas bloquant : la couche sommets/cols/points de vue reste optionnelle.
       })
-  }, [])
+    fetchPois(viewport.bounds, ['monument', 'park'], limit)
+      .then((data) => {
+        if (!cancelled) setPlacePois(data)
+      })
+      .catch(() => {
+        // Pas bloquant : la couche lieux à visiter reste optionnelle.
+      })
 
-  // Deux calques distincts à partir des mêmes données : le côté montagne (sommets, cols,
-  // points de vue) et les "lieux à visiter" façon Komoot (monuments, parcs) — pour que
-  // l'un ne remplace pas l'autre dans le menu.
-  const mountainPois = useMemo(() => pois.filter((p) => p.type === 'peak' || p.type === 'col' || p.type === 'viewpoint'), [pois])
-  const placePois = useMemo(() => pois.filter((p) => p.type === 'monument' || p.type === 'park'), [pois])
+    return () => {
+      cancelled = true
+    }
+  }, [viewport])
 
   // Carte d'accueil simplifiée façon Komoot : seulement les parcours les plus actifs
   // dans la communauté (votes + signalements cumulés), pas tous les tracés en heatmap.
@@ -294,6 +324,7 @@ export function MapPage() {
         pickedPosition={pickedPosition}
         center={mapCenter}
         fitToRoutes={!centerResolved}
+        onViewportChange={handleViewportChange}
       />
 
       {routes.length > FEATURED_ROUTES_COUNT && step === 'idle' && (

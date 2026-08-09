@@ -19,6 +19,7 @@ import 'leaflet/dist/leaflet.css'
 import { REPORT_TYPE_COLORS } from './icons'
 import { extractTrackSegment, nearestTrackIndex } from '../lib/geo'
 import { relevanceOpacity } from '../lib/reportRelevance'
+import type { MapBounds } from '../lib/geocoding'
 import type { WaterPoint } from '../lib/refugesInfo'
 import type { Poi, PoiType } from '../lib/poisApi'
 import { REPORT_TYPE_LABELS, type Report, type RouteRecord } from '../types'
@@ -122,6 +123,10 @@ interface RouteMapProps {
    * position/ville connue : sinon un nouvel arrivant loin de Chambéry se retrouverait
    * quand même recentré sur les seuls parcours actuellement en base. */
   fitToRoutes?: boolean
+  /** Appelé au chargement puis à chaque déplacement/zoom, avec la zone actuellement
+   * affichée — pour charger points d'eau/sommets/lieux à la demande plutôt qu'un rayon
+   * fixe, et éviter de surcharger l'appareil quand la zone visible est très grande. */
+  onViewportChange?: (bounds: MapBounds, zoom: number) => void
 }
 
 function FitToRoutes({ routes, enabled }: { routes: RouteRecord[]; enabled: boolean }) {
@@ -153,6 +158,28 @@ function RecenterMap({ center }: { center: { lat: number; lng: number } }) {
   return null
 }
 
+function ViewportWatcher({ onViewportChange }: { onViewportChange?: (bounds: MapBounds, zoom: number) => void }) {
+  function report(leafletMap: L.Map) {
+    const b = leafletMap.getBounds()
+    onViewportChange?.(
+      { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
+      leafletMap.getZoom(),
+    )
+  }
+
+  const map = useMapEvents({
+    moveend: (e) => report(e.target),
+    zoomend: (e) => report(e.target),
+  })
+
+  useEffect(() => {
+    report(map)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map])
+
+  return null
+}
+
 function PickModeHandler({ active, onPick }: { active: boolean; onPick?: (lat: number, lng: number) => void }) {
   const map = useMapEvents({
     click(e) {
@@ -179,6 +206,7 @@ export function RouteMap({
   heatmap = false,
   center = DEFAULT_MAP_CENTER,
   fitToRoutes = true,
+  onViewportChange,
 }: RouteMapProps) {
   const routesById = useMemo(() => new Map(routes.map((route) => [route.id, route])), [routes])
 
@@ -205,6 +233,7 @@ export function RouteMap({
       <RecenterMap center={center} />
       <FitToRoutes routes={routes} enabled={fitToRoutes} />
       <PickModeHandler active={pickMode} onPick={onPick} />
+      <ViewportWatcher onViewportChange={onViewportChange} />
       {routes.map((route, index) => (
         <Polyline
           key={route.id}
