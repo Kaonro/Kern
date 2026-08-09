@@ -179,15 +179,17 @@ export function MapPage() {
       return
     }
 
+    const limit = poiLimitForZoom(viewport.zoom)
+
+    // refuges.info ne propose pas de plafond côté requête ("nb_points=all") : une zone
+    // dense en points d'eau peut en renvoyer des milliers sans ce découpage côté client.
     fetchWaterPoints(viewport.bounds)
       .then((data) => {
-        if (!cancelled) setWaterPoints(data)
+        if (!cancelled) setWaterPoints(data.slice(0, limit))
       })
       .catch(() => {
         // Pas bloquant : refuges.info est une source externe optionnelle.
       })
-
-    const limit = poiLimitForZoom(viewport.zoom)
     fetchPois(viewport.bounds, ['peak', 'col', 'viewpoint'], limit)
       .then((data) => {
         if (!cancelled) setMountainPois(data)
