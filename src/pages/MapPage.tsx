@@ -29,10 +29,15 @@ import type { Report, ReportType, RouteRecord, RouteVote } from '../types'
 /** Nombre de parcours mis en avant sur la carte d'accueil simplifiée. */
 const FEATURED_ROUTES_COUNT = 8
 
-// Plafond de marqueurs (points d'eau + sommets/lieux) selon le zoom : une vue très
-// dézoomée couvre une zone énorme, un plafond bas évite de surcharger un téléphone avec
-// des milliers de marqueurs illisibles à cette échelle. Plus on zoome, plus la zone
-// visible est petite et plus on peut se permettre d'en afficher.
+// En dessous de ce zoom (vue régionale/pays), la zone visible est énorme — sur un grand
+// écran PC ça peut représenter une bonne partie de la France. Plutôt que d'essayer de
+// plafonner finement, on coupe net : aucun point d'eau/sommet/lieu chargé ni affiché.
+const MIN_ZOOM_FOR_LAYERS = 8
+
+// Plafond de marqueurs (points d'eau + sommets/lieux) selon le zoom : une vue dézoomée
+// couvre une zone large, un plafond bas évite de surcharger un téléphone avec des
+// milliers de marqueurs illisibles à cette échelle. Plus on zoome, plus la zone visible
+// est petite et plus on peut se permettre d'en afficher.
 function poiLimitForZoom(zoom: number): number {
   if (zoom < 9) return 80
   if (zoom < 11) return 150
@@ -166,6 +171,13 @@ export function MapPage() {
   useEffect(() => {
     if (!viewport) return
     let cancelled = false
+
+    if (viewport.zoom < MIN_ZOOM_FOR_LAYERS) {
+      setWaterPoints([])
+      setMountainPois([])
+      setPlacePois([])
+      return
+    }
 
     fetchWaterPoints(viewport.bounds)
       .then((data) => {
