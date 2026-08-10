@@ -59,6 +59,9 @@ export function toFriendlyError(err: unknown): string {
   if (lower.includes('password should be at least')) {
     return 'Le mot de passe doit contenir au moins 6 caractères.'
   }
+  if (lower.includes('invalid input syntax for type uuid')) {
+    return 'Parcours introuvable.'
+  }
 
   return raw
 }
