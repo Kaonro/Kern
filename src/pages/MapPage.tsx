@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Geolocation } from '@capacitor/geolocation'
 import { RouteMap, DEFAULT_MAP_CENTER } from '../components/RouteMap'
 import {
   IconCheck,
@@ -53,14 +54,12 @@ const VIEWPORT_DEBOUNCE_MS = 300
 
 type PlacementStep = 'idle' | 'action-sheet' | 'choosing-location' | 'locating' | 'form'
 
-function getCurrentPosition(): Promise<GeolocationPosition> {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("La géolocalisation n'est pas disponible sur cet appareil."))
-      return
-    }
-    navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
-  })
+// Passe par le plugin Capacitor (plutôt que navigator.geolocation directement) : sur
+// Android, le WebView ne déclenche pas fiablement la demande de permission runtime sans
+// lui. Le plugin retombe automatiquement sur l'API navigateur standard en dehors de l'app
+// native (web), donc ce même code sert pour le site et l'appli.
+function getCurrentPosition() {
+  return Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000 })
 }
 
 export function MapPage() {
