@@ -124,24 +124,17 @@ export function MapPage() {
       })
   }, [])
 
-  // Priorité : géolocalisation du navigateur, sinon ville renseignée dans le profil,
+  // Priorité : ville renseignée dans le profil, sinon géolocalisation du navigateur,
   // sinon on reste sur DEFAULT_MAP_CENTER (et FitToRoutes prend le relais comme avant).
+  // La ville de profil prime volontairement sur le GPS : une fois l'autorisation de
+  // localisation donnée une fois, elle reste active en silence et écrasait sinon tout
+  // changement de ville de profil sans que l'utilisateur comprenne pourquoi — la ville
+  // choisie explicitement doit rester maîtresse de "son coin" sur la carte.
   useEffect(() => {
     if (authLoading) return
     let cancelled = false
 
     async function resolveCenter() {
-      try {
-        const position = await getCurrentPosition()
-        if (!cancelled) {
-          setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude })
-          setCenterResolved(true)
-        }
-        return
-      } catch {
-        // Géolocalisation refusée/indisponible : on retombe sur la ville du profil.
-      }
-
       if (session) {
         try {
           const profile = await fetchProfile(session.user.id)
@@ -151,10 +144,21 @@ export function MapPage() {
               setMapCenter(geocoded)
               setCenterResolved(true)
             }
+            if (geocoded) return
           }
         } catch {
-          // Pas grave, on reste sur le centre par défaut.
+          // Pas grave, on retombe sur la géolocalisation.
         }
+      }
+
+      try {
+        const position = await getCurrentPosition()
+        if (!cancelled) {
+          setMapCenter({ lat: position.coords.latitude, lng: position.coords.longitude })
+          setCenterResolved(true)
+        }
+      } catch {
+        // Géolocalisation refusée/indisponible : on reste sur le centre par défaut.
       }
     }
 
