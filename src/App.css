@@ -608,6 +608,53 @@
   text-align: center;
 }
 
+/* Confirmation communautaire ("toujours là" / "plus d'actualité"), façon Waze —
+ * n'importe qui peut donner son avis, pas seulement l'auteur du signalement. */
+.report-confirmations {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.report-confirmations button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: all 0.15s ease;
+}
+
+.report-confirmations button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.report-confirmations button:first-child:not(:disabled) {
+  border-color: #2fb457;
+  color: #2fb457;
+}
+
+.report-confirmations button:last-child:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.report-confirmations button.active:first-child {
+  background: #2fb457;
+  color: #fff;
+}
+
+.report-confirmations button.active:last-child {
+  background: var(--color-text-muted);
+  color: #fff;
+}
+
 /* Empty / loading states */
 .empty-state,
 .loading-state {

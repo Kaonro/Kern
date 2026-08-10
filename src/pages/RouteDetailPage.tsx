@@ -11,6 +11,7 @@ import {
   IconCalendar,
   IconCheck,
   IconCompass,
+  IconCross,
   IconEdit,
   IconElevation,
   IconGauge,
@@ -31,6 +32,7 @@ import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
 import { castVote, computeMajorityTechnicite, countTechniciteVotes, fetchVotesForRoute } from '../lib/votesApi'
 import { castDifficultyVote, fetchDifficultyVotesForRoute } from '../lib/difficultyVotesApi'
 import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
+import { castReportConfirmation, fetchConfirmationsForReports } from '../lib/reportConfirmationsApi'
 import { fetchActivityStats, type ActivityStats } from '../lib/reputationApi'
 import {
   DIFFICULTE_LABELS,
@@ -39,6 +41,7 @@ import {
   TECHNICITE_LABELS,
   type Difficulte,
   type Report,
+  type ReportConfirmation,
   type ReportType,
   type RouteDifficultyVote,
   type RouteVote,
@@ -54,6 +57,7 @@ export function RouteDetailPage() {
   const [votes, setVotes] = useState<RouteVote[]>([])
   const [difficultyVotes, setDifficultyVotes] = useState<RouteDifficultyVote[]>([])
   const [reports, setReports] = useState<Report[]>([])
+  const [confirmations, setConfirmations] = useState<ReportConfirmation[]>([])
   const [contributorStats, setContributorStats] = useState<ActivityStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -92,6 +96,9 @@ export function RouteDetailPage() {
       // passée en base, ça ne doit pas casser le reste de la fiche parcours.
       fetchDifficultyVotesForRoute(id)
         .then(setDifficultyVotes)
+        .catch(() => {})
+      fetchConfirmationsForReports(reportsData.map((r) => r.id))
+        .then(setConfirmations)
         .catch(() => {})
       if (routeData?.created_by) {
         fetchActivityStats(routeData.created_by)
@@ -193,6 +200,16 @@ export function RouteDetailPage() {
       setError(toFriendlyError(err))
     } finally {
       setDeletingReportId(null)
+    }
+  }
+
+  async function handleConfirmReport(reportId: string, confirmed: boolean) {
+    if (!session) return
+    try {
+      await castReportConfirmation(reportId, session.user.id, confirmed)
+      setConfirmations(await fetchConfirmationsForReports(reports.map((r) => r.id)))
+    } catch (err) {
+      setError(toFriendlyError(err))
     }
   }
 
@@ -447,6 +464,32 @@ export function RouteDetailPage() {
                 </div>
               </div>
               {report.description && <p>{report.description}</p>}
+              {(() => {
+                const reportConfirmations = confirmations.filter((c) => c.report_id === report.id)
+                const confirmedCount = reportConfirmations.filter((c) => c.confirmed).length
+                const disputedCount = reportConfirmations.length - confirmedCount
+                const myConfirmation = reportConfirmations.find((c) => c.user_id === session?.user.id)?.confirmed
+                return (
+                  <div className="report-confirmations">
+                    <button
+                      type="button"
+                      className={myConfirmation === true ? 'active' : ''}
+                      disabled={!session}
+                      onClick={() => handleConfirmReport(report.id, true)}
+                    >
+                      <IconCheck /> Toujours là {confirmedCount > 0 && `(${confirmedCount})`}
+                    </button>
+                    <button
+                      type="button"
+                      className={myConfirmation === false ? 'active' : ''}
+                      disabled={!session}
+                      onClick={() => handleConfirmReport(report.id, false)}
+                    >
+                      <IconCross /> Plus d'actualité {disputedCount > 0 && `(${disputedCount})`}
+                    </button>
+                  </div>
+                )
+              })()}
             </li>
           ))}
           {reports.length === 0 && <li className="empty">Aucun signalement pour l'instant.</li>}

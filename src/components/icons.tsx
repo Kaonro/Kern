@@ -356,6 +356,17 @@ export function IconCheck(props: IconProps) {
   )
 }
 
+/** Pour infirmer un signalement ("n'existe plus") — même gabarit que IconCheck (cercle),
+ * pour former une paire visuelle confirmer/infirmer cohérente. */
+export function IconCross(props: IconProps) {
+  return (
+    <Base {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9 9l6 6M15 9l-6 6" />
+    </Base>
+  )
+}
+
 export function IconArrowLeft(props: IconProps) {
   return (
     <Base {...props}>

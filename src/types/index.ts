@@ -100,6 +100,14 @@ export interface Report {
   created_at: string
 }
 
+/** Reflète directement les colonnes de la table public.report_confirmations. */
+export interface ReportConfirmation {
+  id: string
+  report_id: string
+  user_id: string
+  confirmed: boolean
+}
+
 /**
  * Reflète les colonnes de public.users accessibles via l'API (hors email,
  * jamais exposé publiquement — voir supabase/schema.sql). L'email vient
