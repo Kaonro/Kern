@@ -49,9 +49,31 @@
   color: #fff;
 }
 
+/* Onglet actif : crête montagneuse irrégulière découpée dans le haut (au lieu d'un
+   rectangle plat), plus le même relief lumière/ombre que les boutons — cohérent avec
+   l'identité Kern sans juste réutiliser le même gabarit de découpe partout. */
 .navbar-links a.active {
-  background: var(--color-accent);
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%, rgba(0, 0, 0, 0.14) 100%),
+    var(--color-accent);
   color: #fff;
+  clip-path: polygon(
+    0 6px,
+    10% 6px,
+    18% 1px,
+    26% 6px,
+    40% 6px,
+    50% 0,
+    60% 6px,
+    74% 6px,
+    82% 2px,
+    90% 6px,
+    100% 6px,
+    100% 100%,
+    0 100%
+  );
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(31, 42, 36, 0.22);
 }
 
 .navbar-user {
