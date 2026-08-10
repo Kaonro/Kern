@@ -695,6 +695,16 @@ textarea {
   font-size: 0.9rem;
 }
 
+.technicite-trend {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.technicite-trend strong {
+  color: var(--color-text);
+}
+
 .notice a {
   color: var(--color-primary);
   font-weight: 700;

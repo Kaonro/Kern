@@ -28,7 +28,7 @@ import { useAuth } from '../lib/AuthContext'
 import { toFriendlyError } from '../lib/errors'
 import { relevanceOpacity } from '../lib/reportRelevance'
 import { fetchRouteById, updateNom, updateSaisonnalite } from '../lib/routesApi'
-import { castVote, computeMajorityTechnicite, fetchVotesForRoute } from '../lib/votesApi'
+import { castVote, computeMajorityTechnicite, countTechniciteVotes, fetchVotesForRoute } from '../lib/votesApi'
 import { castDifficultyVote, fetchDifficultyVotesForRoute } from '../lib/difficultyVotesApi'
 import { createReport, deleteReport, fetchReportsForRoute } from '../lib/reportsApi'
 import { fetchActivityStats, type ActivityStats } from '../lib/reputationApi'
@@ -219,6 +219,8 @@ export function RouteDetailPage() {
   }
 
   const majorityTechnicite = computeMajorityTechnicite(votes)
+  const myTechnicite = votes.find((v) => v.user_id === session?.user.id)?.technicite
+  const techniciteCounts = countTechniciteVotes(votes)
   const myDifficulteVote = difficultyVotes.find((v) => v.user_id === session?.user.id)?.difficulte
 
   return (
@@ -303,7 +305,7 @@ export function RouteDetailPage() {
             <button
               key={t}
               type="button"
-              className={t === majorityTechnicite ? `active ${t}` : t}
+              className={t === myTechnicite ? `active ${t}` : t}
               disabled={!session}
               onClick={() => handleVote(t)}
             >
@@ -311,6 +313,12 @@ export function RouteDetailPage() {
             </button>
           ))}
         </div>
+        {votes.length > 0 && majorityTechnicite && (
+          <p className="technicite-trend">
+            Avis de la communauté : <strong>{TECHNICITE_LABELS[majorityTechnicite]}</strong>{' '}
+            ({techniciteCounts[majorityTechnicite]} vote{techniciteCounts[majorityTechnicite] > 1 ? 's' : ''} sur {votes.length})
+          </p>
+        )}
         {!session && (
           <p className="notice">
             <IconLock /> <Link to="/auth">Connecte-toi</Link> pour voter.

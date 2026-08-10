@@ -472,12 +472,15 @@ export function IconGoogle(props: SVGProps<SVGSVGElement>) {
 
 /** Couleur d'accent par type de signalement, pour les badges du menu déroulant. */
 /** Dégradé vert → rouge, façon feu tricolore, pour la barre de difficulté générale. */
+// Dégradé vert → rouge plus saturé et mieux séparé en teinte (pas juste en luminosité)
+// que la palette d'origine, où facile/moyen/difficile se confondaient dans un même
+// camaïeu orangé — chaque niveau doit rester lisible même en petit segment de barre.
 export const DIFFICULTE_COLORS: Record<Difficulte, string> = {
-  tres_facile: '#3fa66a',
-  facile: '#8fbc3f',
-  moyen: '#e0a83f',
-  difficile: '#e0793f',
-  tres_difficile: '#c0392b',
+  tres_facile: '#2fb457',
+  facile: '#9bc93c',
+  moyen: '#f0c419',
+  difficile: '#f2822c',
+  tres_difficile: '#e6342a',
 }
 
 export const REPORT_TYPE_COLORS: Record<ReportType, string> = {

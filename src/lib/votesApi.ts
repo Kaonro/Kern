@@ -20,9 +20,14 @@ export async function castVote(routeId: string, userId: string, technicite: Tech
   if (error) throw error
 }
 
-export function computeMajorityTechnicite(votes: RouteVote[]): Technicite | null {
-  if (votes.length === 0) return null
+export function countTechniciteVotes(votes: RouteVote[]): Record<Technicite, number> {
   const counts: Record<Technicite, number> = { roulant: 0, technique: 0, tres_technique: 0 }
   for (const vote of votes) counts[vote.technicite]++
+  return counts
+}
+
+export function computeMajorityTechnicite(votes: RouteVote[]): Technicite | null {
+  if (votes.length === 0) return null
+  const counts = countTechniciteVotes(votes)
   return (Object.keys(counts) as Technicite[]).reduce((a, b) => (counts[a] >= counts[b] ? a : b))
 }
