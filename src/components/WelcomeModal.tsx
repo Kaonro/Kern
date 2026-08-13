@@ -101,17 +101,28 @@ export function WelcomeModal() {
     }
 
     function measure() {
-      setTargetRect(current.target ? findVisibleRect(current.target) : null)
+      const rect = current.target ? findVisibleRect(current.target) : null
+      setTargetRect(rect)
       setCardRect(cardRef.current?.getBoundingClientRect() ?? null)
+      return rect
     }
 
-    // Un tick après le render : la carte doit avoir sa taille finale (le texte varie
-    // d'une étape à l'autre) avant de calculer où poser la mascotte et la flèche.
+    // La cible (ex. le bouton "signaler") peut ne pas encore exister au tout premier
+    // rendu — la carte prend un instant à se dimensionner, et sur un appareil/réseau
+    // lent le reste de la page peut être encore en train de se peindre. Un seul essai
+    // (même différé d'une frame) suffisait en dev rapide mais ratait la cible en
+    // conditions réelles, faisant retomber l'étape en modale centrée sans flèche.
+    // On réessaie donc pendant 2s au lieu de laisser tomber après une seule frame.
     measure()
-    const raf = requestAnimationFrame(measure)
+    let attempts = 0
+    const poll = window.setInterval(() => {
+      attempts += 1
+      const rect = measure()
+      if (rect || attempts > 20) window.clearInterval(poll)
+    }, 100)
     window.addEventListener('resize', measure)
     return () => {
-      cancelAnimationFrame(raf)
+      window.clearInterval(poll)
       window.removeEventListener('resize', measure)
     }
   }, [visible, step, current.target])
