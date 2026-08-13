@@ -9,55 +9,228 @@
   padding: 1.25rem;
 }
 
+/* En mode "tour guidé" (une cible réelle est mise en évidence), on garde la carte
+   cliquable mais on laisse le reste de l'app utilisable dessous plutôt que de tout
+   bloquer derrière un voile — l'utilisateur peut même cliquer le vrai bouton montré. */
+.welcome-overlay-coach {
+  background: rgba(31, 42, 36, 0.12);
+  pointer-events: none;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
+}
+
+.welcome-ring {
+  position: fixed;
+  z-index: 2001;
+  border: 2.5px solid var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(224, 121, 63, 0.22);
+  pointer-events: none;
+  animation: welcome-ring-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-ring {
+    animation: none;
+  }
+}
+
+@keyframes welcome-ring-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(224, 121, 63, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgba(224, 121, 63, 0.1);
+  }
+}
+
+/* Calque plein écran pour la flèche qui relie la carte à la mascotte postée près du
+   bouton mis en évidence — coordonnées en pixels écran bruts (getBoundingClientRect). */
+.welcome-arrow-layer {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2001;
+  pointer-events: none;
+}
+
+.welcome-arrow-line {
+  stroke: var(--color-accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 7 7;
+  animation: welcome-arrow-flow 0.6s linear infinite;
+}
+
+@keyframes welcome-arrow-flow {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-arrow-line {
+    animation: none;
+    stroke-dasharray: none;
+  }
+}
+
+.welcome-mascot-badge {
+  position: fixed;
+  z-index: 2002;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  pointer-events: none;
+  animation: welcome-card-in 0.28s ease;
+}
+
+.welcome-mascot-badge svg {
+  width: 100%;
+  height: 100%;
+}
+
 .welcome-card {
+  position: relative;
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  padding: 1.75rem 1.5rem;
+  padding: 2.5rem 1.5rem 1.75rem;
   max-width: 400px;
   width: 100%;
   text-align: center;
+  overflow: hidden;
+  animation: welcome-card-in 0.28s ease;
 }
 
-.welcome-logo {
-  font-size: 2.5rem;
-  color: var(--color-primary);
+@keyframes welcome-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.welcome-card h1 {
-  margin: 0.5rem 0 0.4rem;
+@media (prefers-reduced-motion: reduce) {
+  .welcome-card {
+    animation: none;
+  }
 }
 
-.welcome-tagline {
-  font-style: italic;
+.welcome-card-coach {
+  position: fixed;
+  left: 1rem;
+  right: 1rem;
+  width: auto;
+  margin: 0 auto;
+  z-index: 2002;
+  pointer-events: auto;
+  padding: 2.25rem 1.25rem 1.5rem;
+}
+
+.welcome-card-coach.dock-top {
+  top: calc(1rem + env(safe-area-inset-top));
+}
+
+.welcome-card-coach.dock-bottom {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.welcome-skip {
+  position: absolute;
+  top: 0.9rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  padding: 0.3rem 0.5rem;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
   color: var(--color-text-muted);
-  margin-bottom: 1.25rem;
+  cursor: pointer;
 }
 
-.welcome-features {
-  list-style: none;
-  margin: 0 0 1.5rem;
-  padding: 0;
+.welcome-skip:hover {
+  color: var(--color-text);
+}
+
+.welcome-step {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  text-align: left;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  padding: 0 0.25rem;
 }
 
-.welcome-features li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+.welcome-card-coach .welcome-step {
+  min-height: 0;
 }
 
-.welcome-features .icon {
+.welcome-mascot {
+  width: 84px;
+  height: 84px;
   flex-shrink: 0;
-  color: var(--color-accent);
-  font-size: 1.4rem;
-  margin-top: 0.1rem;
+  color: var(--color-primary-dark);
+  margin-bottom: 0.9rem;
 }
 
-.welcome-features span {
-  color: var(--color-text);
-  line-height: 1.4;
+.welcome-step-hero .welcome-mascot {
+  width: 96px;
+  height: 96px;
+}
+
+.welcome-step h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.welcome-step-hero h1 {
+  margin: 0 0 0.6rem;
+}
+
+.welcome-step p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.welcome-step-hero p {
+  font-style: italic;
+}
+
+.welcome-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.welcome-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: var(--color-border);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, width 0.2s ease;
+}
+
+.welcome-dot-active {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--color-primary);
 }

@@ -56,7 +56,9 @@ export function UploadGpxPage() {
           <IconLock />
         </span>
         <h1>Ajouter un parcours</h1>
-        <p>Connecte-toi pour pouvoir ajouter un parcours.</p>
+        <p>
+          Connecte-toi pour pouvoir ajouter un parcours. <Link to="/auth">Se connecter</Link>
+        </p>
       </div>
     )
   }
