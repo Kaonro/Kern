@@ -81,7 +81,7 @@
     inset 0 2px 0 rgba(255, 255, 255, 0.3),
     inset 0 -4px 8px rgba(0, 0, 0, 0.18),
     0 8px 20px rgba(31, 42, 36, 0.3);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   z-index: 550;
   display: flex;
   align-items: center;
@@ -382,7 +382,7 @@
   font-weight: 700;
   border: none;
   padding: 0.7rem 1.3rem;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   clip-path: polygon(
     var(--facet) 0,
     100% 0,
@@ -477,7 +477,7 @@
   border: 2px solid transparent;
   background: var(--color-bg);
   color: var(--color-text);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   font-weight: 700;
   transition: all 0.15s ease;
 }
@@ -525,7 +525,7 @@
   border: 2px solid transparent;
   background: var(--color-bg);
   color: var(--color-text);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   font-weight: 700;
   transition: all 0.15s ease;
 }
@@ -639,7 +639,7 @@
   border: 2px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-muted);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   font-weight: 700;
   font-size: 0.82rem;
   transition: all 0.15s ease;
@@ -696,7 +696,7 @@
   border-radius: var(--radius-lg);
   padding: 2.5rem 1rem;
   text-align: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   background: var(--color-surface);
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -853,7 +853,7 @@ textarea {
   background: none;
   border: none;
   color: var(--color-primary);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   padding: 0;
   font-weight: 700;
 }
