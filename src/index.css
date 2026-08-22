@@ -87,10 +87,16 @@ html, body {
   overscroll-behavior: none;
 }
 
+/* Curseur maison par défaut partout, pas seulement sur les éléments cliquables — sinon
+   il cohabitait avec la flèche système sur le reste de la page, incohérent. La carte
+   Leaflet garde ses propres curseurs (grab au survol, grabbing en glissé, crosshair en
+   mode pointage) : ses règles ciblent ses éléments directement, donc elles l'emportent
+   sur l'héritage depuis body sans rien à faire de spécial ici. */
 body {
   margin: 0;
   background: var(--color-bg);
   color: var(--color-text);
+  cursor: var(--cursor-pointer);
 }
 
 #root {
