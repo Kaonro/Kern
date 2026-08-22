@@ -405,6 +405,13 @@
    Décalage négatif à la place : l'anneau reste à l'intérieur de la forme, garanti visible. */
 .btn:focus-visible {
   outline-offset: -4px;
+  animation: focus-blaze-pulse-inset 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:focus-visible {
+    animation: none;
+  }
 }
 
 .btn:hover:not(:disabled) {

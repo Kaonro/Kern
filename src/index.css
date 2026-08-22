@@ -32,12 +32,41 @@
 }
 
 /* Anneau de focus clavier explicite plutôt que de dépendre du rendu par défaut du
-   navigateur (fin, peu contrasté sur le vert foncé de la nav) — surtout utile sur les
-   éléments à la découpe "à facette" (voir .btn), où l'anneau natif suit la découpe de
-   très près et devient difficile à voir sans cette couleur/épaisseur dédiées. */
+   navigateur (fin, peu contrasté sur le vert foncé de la nav). En pointillés plutôt
+   qu'un trait plein — même motif que le balisage de sentier et que les flèches du tour
+   guidé (WelcomeModal) — et légèrement pulsé, pour rester dans l'identité de l'app
+   plutôt qu'un rectangle générique de formulaire web. */
 :focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 3px dashed var(--color-accent);
+  outline-offset: 3px;
+  animation: focus-blaze-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes focus-blaze-pulse {
+  0%, 100% {
+    outline-offset: 3px;
+  }
+  50% {
+    outline-offset: 5px;
+  }
+}
+
+/* Variante pour les éléments à la découpe "à facette" (.btn, .navbar-links a.active,
+   voir App.css/NavBar.css) : leur anneau doit rester à décalage négatif pour ne pas se
+   faire rogner par le clip-path, donc on pulse entre deux valeurs négatives. */
+@keyframes focus-blaze-pulse-inset {
+  0%, 100% {
+    outline-offset: -4px;
+  }
+  50% {
+    outline-offset: -6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :focus-visible {
+    animation: none;
+  }
 }
 
 html, body {

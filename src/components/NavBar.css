@@ -76,6 +76,13 @@
    de focus classique. */
 .navbar-links a.active:focus-visible {
   outline-offset: -4px;
+  animation: focus-blaze-pulse-inset 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-links a.active:focus-visible {
+    animation: none;
+  }
 }
 
 .navbar-user {
