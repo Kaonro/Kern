@@ -39,6 +39,12 @@
   box-sizing: border-box;
 }
 
+/* Les <a> ont un curseur main natif du navigateur sans besoin de CSS explicite —
+   contrairement aux <button>, ils n'héritaient donc pas du curseur maison ci-dessus. */
+a {
+  cursor: var(--cursor-pointer);
+}
+
 /* Anneau de focus clavier explicite plutôt que de dépendre du rendu par défaut du
    navigateur (fin, peu contrasté sur le vert foncé de la nav). En pointillés plutôt
    qu'un trait plein — même motif que le balisage de sentier et que les flèches du tour
