@@ -12,7 +12,7 @@
   --color-bg: #f7f5ef;
   --color-surface: #ffffff;
   --color-text: #24291f;
-  --color-text-muted: #6f7a6c;
+  --color-text-muted: #657064;
   --color-border: #e3ddcd;
 
   --radius-sm: 8px;
@@ -29,6 +29,15 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Anneau de focus clavier explicite plutôt que de dépendre du rendu par défaut du
+   navigateur (fin, peu contrasté sur le vert foncé de la nav) — surtout utile sur les
+   éléments à la découpe "à facette" (voir .btn), où l'anneau natif suit la découpe de
+   très près et devient difficile à voir sans cette couleur/épaisseur dédiées. */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 html, body {

@@ -72,6 +72,12 @@
   box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(31, 42, 36, 0.22);
 }
 
+/* Même piège que .btn (App.css) : le clip-path du profil de montagne rogne un anneau
+   de focus classique. */
+.navbar-links a.active:focus-visible {
+  outline-offset: -4px;
+}
+
 .navbar-user {
   color: #d7e4dc;
   font-size: 0.9rem;

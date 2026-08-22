@@ -400,6 +400,13 @@
   transition: filter 0.15s ease, transform 0.08s ease, box-shadow 0.12s ease;
 }
 
+/* Le clip-path plus haut rogne tout ce qui dépasse de la découpe à facette — un anneau
+   de focus classique (outline-offset positif) se retrouve donc coupé et invisible.
+   Décalage négatif à la place : l'anneau reste à l'intérieur de la forme, garanti visible. */
+.btn:focus-visible {
+  outline-offset: -4px;
+}
+
 .btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
@@ -761,6 +768,8 @@ textarea {
 .auth-page {
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 100%;
 }
 
 .auth-card {
@@ -812,6 +821,18 @@ textarea {
   flex-direction: column;
   gap: 0.75rem;
   margin-bottom: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
 }
 
 .auth-page input {

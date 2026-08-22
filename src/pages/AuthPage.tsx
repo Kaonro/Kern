@@ -76,30 +76,48 @@ export function AuthPage() {
           <span>ou</span>
         </div>
         <form onSubmit={handleSubmit}>
-          <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input
-            type="password"
-            placeholder="mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
+          <label className="field">
+            <span className="field-label">Email</span>
+            <input
+              type="email"
+              placeholder="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label className="field">
+            <span className="field-label">Mot de passe</span>
+            <input
+              type="password"
+              placeholder="mot de passe"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </label>
           {mode === 'signup' && (
             <>
-              <input
-                type="text"
-                placeholder="pseudo"
-                value={pseudo}
-                onChange={(e) => setPseudo(e.target.value)}
-                required
-              />
-              <input
-                type="text"
-                placeholder="ville (optionnel)"
-                value={ville}
-                onChange={(e) => setVille(e.target.value)}
-              />
+              <label className="field">
+                <span className="field-label">Pseudo</span>
+                <input
+                  type="text"
+                  placeholder="pseudo"
+                  value={pseudo}
+                  onChange={(e) => setPseudo(e.target.value)}
+                  required
+                />
+              </label>
+              <label className="field">
+                <span className="field-label">Ville (optionnel)</span>
+                <input
+                  type="text"
+                  placeholder="ville (optionnel)"
+                  value={ville}
+                  onChange={(e) => setVille(e.target.value)}
+                />
+              </label>
             </>
           )}
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>

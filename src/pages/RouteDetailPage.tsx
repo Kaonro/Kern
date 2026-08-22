@@ -403,6 +403,11 @@ export function RouteDetailPage() {
             )}
           </>
         )}
+        {!session && (
+          <p className="notice">
+            <IconLock /> <Link to="/auth">Connecte-toi</Link> pour renseigner la praticabilité.
+          </p>
+        )}
       </div>
 
       <div className="card">
